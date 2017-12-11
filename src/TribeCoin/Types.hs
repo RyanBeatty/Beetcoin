@@ -28,8 +28,7 @@ instance Serialize BlockHash where
       (Just digest) -> return $ BlockHash digest
 
 newtype Timestamp = Timestamp Word32
-      deriving (Show, Eq, Ord, Generic)
-instance Serialize Timestamp
+      deriving (Show, Eq, Ord)
 
 newtype Difficulty = Difficulty Word32
       deriving (Show, Generic)
@@ -41,7 +40,6 @@ instance Serialize Nonce
 
 data BlockHeader = BlockHeader
   { _previousBlockHash :: BlockHash
-  , _timestamp :: Timestamp
   , _difficulty :: Difficulty
   , _nonce :: Nonce
   } deriving (Show, Generic)
@@ -59,5 +57,6 @@ data Transaction = Transaction
 data Block = Block
   { _blockHeader :: BlockHeader
   , _transactions :: [Transaction]
+  , _timestamp :: Timestamp
   } deriving (Show)
 
