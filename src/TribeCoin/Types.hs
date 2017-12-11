@@ -30,23 +30,13 @@ data BlockHeader = BlockHeader
   , _nonce :: Nonce
   } deriving (Show)
 
-data Input = Input 
-  { _previousTrans :: ()
-  , _transIndex :: ()
-  , _signature :: ()
-  } deriving (Show)
-
 newtype Amount = Amount Word8
       deriving (Show, Eq)
 
-data Output = Output
-  { _amount :: Amount
-  , _address :: ()
-  } deriving (Show)
-
 data Transaction = Transaction
-  { _inputs :: [Input]
-  , _outpus :: [Output]
+  { _sender :: ()
+  , _receiver :: ()
+  , _amount :: Amount
   } deriving (Show)
 
 data Block = Block
