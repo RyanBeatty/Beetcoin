@@ -10,16 +10,16 @@ module TribeCoin.Types
 
 import Control.Monad.Fail as MF (fail)
 import Crypto.Hash (Digest, SHA256, digestFromByteString)
-import Data.Binary (Binary, put, get, Get)
 import Data.ByteArray (convert)
 import qualified Data.ByteString as BS (ByteString)
+import Data.Serialize (Serialize, put, get, Get)
 import Data.Word (Word32, Word8)
 import GHC.Generics (Generic)
 
 newtype BlockHash = BlockHash (Digest SHA256)
       deriving (Show, Eq)
 
-instance Binary BlockHash where
+instance Serialize BlockHash where
   put (BlockHash digest) = put $ (convert digest :: BS.ByteString)
   get = do
     byte_string <- get :: (Get BS.ByteString)
@@ -28,20 +28,24 @@ instance Binary BlockHash where
       (Just digest) -> return $ BlockHash digest
 
 newtype Timestamp = Timestamp Word32
-      deriving (Show, Eq, Ord)
+      deriving (Show, Eq, Ord, Generic)
+instance Serialize Timestamp
 
 newtype Difficulty = Difficulty Word32
-      deriving (Show)
+      deriving (Show, Generic)
+instance Serialize Difficulty
 
 newtype Nonce = Nonce Word32
-      deriving (Show, Enum)
+      deriving (Show, Enum, Generic)
+instance Serialize Nonce
 
 data BlockHeader = BlockHeader
   { _previousBlockHash :: BlockHash
   , _timestamp :: Timestamp
   , _difficulty :: Difficulty
   , _nonce :: Nonce
-  } deriving (Show)
+  } deriving (Show, Generic)
+instance Serialize BlockHeader
 
 newtype Amount = Amount Word8
       deriving (Show, Eq)
