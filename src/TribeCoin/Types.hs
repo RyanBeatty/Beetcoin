@@ -16,6 +16,7 @@ import Data.Serialize (Serialize, put, get, Get)
 import Data.Word (Word32, Word8)
 import GHC.Generics (Generic)
 
+-- ^ The sha256 hash of a block header.
 newtype BlockHash = BlockHash (Digest SHA256)
       deriving (Show, Eq)
 
@@ -30,8 +31,8 @@ instance Serialize BlockHash where
 newtype Timestamp = Timestamp Word32
       deriving (Show, Eq, Ord)
 
--- ^ A 32 bit number which represents the number of leading 0's there must be
--- for the hash of a block header to be considered valid.
+-- ^ A 32 bit number which represents the number of leading 0's that should be in a block header hash.
+-- ^ Is dynamically adjusted.
 newtype Difficulty = Difficulty Word32
       deriving (Show, Integral, Real, Enum, Num, Ord, Eq, Generic)
 instance Serialize Difficulty
