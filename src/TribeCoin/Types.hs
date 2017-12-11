@@ -10,7 +10,7 @@ module TribeCoin.Types
 
 import Control.Monad.Fail as MF (fail)
 import Crypto.Hash (Digest, SHA256, digestFromByteString)
-import Data.ByteArray (convert)
+import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString)
 import Data.Serialize (Serialize, put, get, Get)
 import Data.Word (Word32, Word8)
@@ -30,8 +30,10 @@ instance Serialize BlockHash where
 newtype Timestamp = Timestamp Word32
       deriving (Show, Eq, Ord)
 
+-- ^ A 32 bit number which represents the number of leading 0's there must be
+-- for the hash of a block header to be considered valid.
 newtype Difficulty = Difficulty Word32
-      deriving (Show, Generic)
+      deriving (Show, Integral, Real, Enum, Num, Ord, Eq, Generic)
 instance Serialize Difficulty
 
 newtype Nonce = Nonce Word32
