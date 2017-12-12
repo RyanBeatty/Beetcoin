@@ -2,12 +2,17 @@ module TribeCoin.Blocks
     ( hashBlockHeader
     ) where
 
-import TribeCoin.Types (Block (..), BlockHeader (..), BlockHash (..))
+import TribeCoin.Types (Block (..), BlockHeader (..), BlockHash (..), Nonce (..))
 
 import Data.ByteString as BS (ByteString, take, replicate)
 import Data.ByteString.Conversion (toByteString')
 import Data.Serialize (encode)
 import Crypto.Hash (hash)
+
+-- | Lazy list of all possible nonce values.
+-- TODO: check if this is the right bounds.
+nonces :: [Nonce]
+nonces = [Nonce 0..]
 
 hashBlockHeader ::
   BlockHeader  -- ^ The block header to hash using sha256.
