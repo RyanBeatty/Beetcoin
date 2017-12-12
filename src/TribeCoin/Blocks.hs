@@ -16,9 +16,9 @@ hashBlockHeader = BlockHash . hash . encode
 
 tryMineBlock :: 
   BlockHeader -- ^ The block header to try hashing.
-  -> Int      -- ^ The number of leading 0's that should be in the hashed block header.
+  -> Int      -- ^ The number of leading 0's that should be in the hashed block header. TODO: Figure out what values are legal.
   -> Bool
 tryMineBlock block_header difficulty =
   let block_hash :: BS.ByteString
       block_hash = encode . hashBlockHeader $ block_header
-  in BS.take difficulty block_hash < BS.replicate difficulty 0
+  in BS.take difficulty block_hash == BS.replicate difficulty 0
