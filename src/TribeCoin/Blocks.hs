@@ -1,6 +1,5 @@
 module TribeCoin.Blocks
-    ( hashBlockHeader
-    , blocks
+    ( mineBlock
     ) where
 
 import TribeCoin.Types (Block (..), BlockHeader (..), BlockHash (..), Nonce (..))
@@ -48,12 +47,3 @@ mineBlock block_header =
       -- TODO: Using fromJust is probably a bad idea here. Maybe use an error monad or something.
       (nonce, _) = fromJust . find ((==) prefix . snd) . blockHashPrefixes block_header $ difficulty
   in block_header { _nonce = nonce }
-
-tryMineBlock :: 
-  BlockHeader -- ^ The block header to try hashing.
-  -> Int      -- ^ The number of leading 0's that should be in the hashed block header. TODO: Figure out what values are legal.
-  -> Bool
-tryMineBlock block_header difficulty =
-  let block_hash :: BS.ByteString
-      block_hash = encode . hashBlockHeader $ block_header
-  in BS.take difficulty block_hash == BS.replicate difficulty 0
