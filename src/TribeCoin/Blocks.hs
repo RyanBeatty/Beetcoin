@@ -1,5 +1,6 @@
 module TribeCoin.Blocks
     ( hashBlockHeader
+    , blocks
     ) where
 
 import TribeCoin.Types (Block (..), BlockHeader (..), BlockHash (..), Nonce (..))
@@ -21,18 +22,18 @@ hashBlockHeader = BlockHash . hash . encode
 nonces :: [Nonce]
 nonces = [Nonce 0..]
 
--- | Lazy list of all possible block headers given a block header without a proof of work.
+-- | Lazy list of all possible block headers with their nonces given a block header without a proof of work.
 blocks ::
   BlockHeader -- ^ A block header that doesn't have a valid proof of work.
-  -> [BlockHeader]
-blocks block_header = map (\n -> block_header { _nonce = n }) nonces
+  -> [(Nonce, BlockHeader)]
+blocks block_header = fmap (\n -> (n, block_header { _nonce = n })) nonces
 
--- | Returns a lazy list of all of the prefixes for all possible hashes of a block header.
+-- | Returns a lazy list of all of the prefixes for all possible hashes of a block header along with the nonce used to generate the prefix.
 blockHashPrefixes ::
   BlockHeader -- ^ The block header to hash.
   -> Int      -- ^ The lenght of the hash prefix we want.
-  -> [BS.ByteString]
-blockHashPrefixes block_header  difficulty = map (BS.take difficulty . encode . hashBlockHeader) .  blocks $ block_header
+  -> [(Nonce, BS.ByteString)]
+blockHashPrefixes block_header  difficulty = (fmap . fmap) (BS.take difficulty . encode . hashBlockHeader) .  blocks $ block_header
 
 tryMineBlock :: 
   BlockHeader -- ^ The block header to try hashing.

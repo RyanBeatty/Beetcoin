@@ -33,6 +33,8 @@ newtype Timestamp = Timestamp Word32
 
 -- ^ A 32 bit number which represents the number of leading 0's that should be in a block header hash.
 -- ^ Is dynamically adjusted.
+-- TODO: I might have this wrong. Target is the number below which a block header's hash should be.
+-- I might need to change this representation.
 newtype Difficulty = Difficulty Word32
       deriving (Show, Integral, Real, Enum, Num, Ord, Eq, Generic)
 instance Serialize Difficulty
