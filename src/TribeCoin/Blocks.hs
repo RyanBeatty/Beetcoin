@@ -35,7 +35,7 @@ blockHashPrefixes ::
   BlockHeader -- ^ The block header to hash.
   -> Int      -- ^ The lenght of the hash prefix we want.
   -> [(Nonce, BS.ByteString)]
-blockHashPrefixes block_header  difficulty = (fmap . fmap) (BS.take difficulty . encode . hashBlockHeader) .  blocks $ block_header
+blockHashPrefixes block_header difficulty = (fmap . fmap) (BS.take difficulty . encode . hashBlockHeader) . blocks $ block_header
 
 -- | Calculates the proof of work for a block header.
 mineBlock ::
