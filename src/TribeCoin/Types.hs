@@ -13,6 +13,7 @@ import Crypto.Hash (Digest, SHA256, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString)
 import Data.Serialize (Serialize, put, get, Get)
+import Data.Time.Clock.POSIX (POSIXTime)
 import Data.UnixTime (UnixTime (..))
 import Data.Word (Word32, Word8)
 import Foreign.C.Types (CTime (..))
@@ -30,14 +31,13 @@ instance Serialize BlockHash where
       Nothing       -> MF.fail "Invalid BlockHash"
       (Just digest) -> return $ BlockHash digest
 
-newtype Timestamp = Timestamp UnixTime
-      deriving (Show, Eq, Ord)
+-- | A timestamp is the amount of seconds since the posix epoch.
+newtype Timestamp = Timestamp POSIXTime
+      deriving (Show, Eq, Ord, Num, Fractional, Real)
 
 instance Serialize Timestamp where
-  put (Timestamp ((UnixTime (CTime sec) msec))) = do
-      put sec
-      put msec
-  get = Timestamp <$> (UnixTime <$> (CTime `fmap` get) <*> get)
+  put (Timestamp time) = put . toRational $ time
+  get = fromRational <$> get
 
 -- ^ A 32 bit number which represents the number of leading 0's that should be in a block header hash.
 -- ^ Is dynamically adjusted.

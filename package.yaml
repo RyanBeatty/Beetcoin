@@ -26,6 +26,7 @@ dependencies:
 - cereal
 - cryptonite
 - memory
+- time
 - unix-time
 
 library:
