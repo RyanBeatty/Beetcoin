@@ -29,7 +29,8 @@ instance Serialize BlockHash where
       (Just digest) -> return $ BlockHash digest
 
 newtype Timestamp = Timestamp Word32
-      deriving (Show, Eq, Ord)
+      deriving (Show, Eq, Ord, Generic)
+instance Serialize Timestamp
 
 -- ^ A 32 bit number which represents the number of leading 0's that should be in a block header hash.
 -- ^ Is dynamically adjusted.
@@ -46,6 +47,7 @@ instance Serialize Nonce
 data BlockHeader = BlockHeader
   { _previousBlockHash :: BlockHash
   , _difficulty :: Difficulty
+  , _timestamp :: Timestamp
   , _nonce :: Nonce
   } deriving (Show, Generic)
 instance Serialize BlockHeader
@@ -62,6 +64,5 @@ data Transaction = Transaction
 data Block = Block
   { _blockHeader :: BlockHeader
   , _transactions :: [Transaction]
-  , _timestamp :: Timestamp
   } deriving (Show)
 
