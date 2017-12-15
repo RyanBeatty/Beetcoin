@@ -35,6 +35,7 @@ instance Serialize BlockHash where
 newtype Timestamp = Timestamp POSIXTime
       deriving (Show, Eq, Ord, Num, Fractional, Real)
 
+-- | TODO: I think the get function has a bug.
 instance Serialize Timestamp where
   put (Timestamp time) = put . toRational $ time
   get = fromRational <$> get
