@@ -26,6 +26,7 @@ dependencies:
 - cereal
 - cryptonite
 - memory
+- unix-time
 
 library:
   source-dirs: src

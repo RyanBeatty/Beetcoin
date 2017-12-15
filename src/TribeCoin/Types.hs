@@ -13,7 +13,9 @@ import Crypto.Hash (Digest, SHA256, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString)
 import Data.Serialize (Serialize, put, get, Get)
+import Data.UnixTime (UnixTime (..))
 import Data.Word (Word32, Word8)
+import Foreign.C.Types (CTime (..))
 import GHC.Generics (Generic)
 
 -- ^ The sha256 hash of a block header.
@@ -28,9 +30,14 @@ instance Serialize BlockHash where
       Nothing       -> MF.fail "Invalid BlockHash"
       (Just digest) -> return $ BlockHash digest
 
-newtype Timestamp = Timestamp Word32
-      deriving (Show, Eq, Ord, Generic)
-instance Serialize Timestamp
+newtype Timestamp = Timestamp UnixTime
+      deriving (Show, Eq, Ord)
+
+instance Serialize Timestamp where
+  put (Timestamp ((UnixTime (CTime sec) msec))) = do
+      put sec
+      put msec
+  get = Timestamp <$> (UnixTime <$> (CTime `fmap` get) <*> get)
 
 -- ^ A 32 bit number which represents the number of leading 0's that should be in a block header hash.
 -- ^ Is dynamically adjusted.
