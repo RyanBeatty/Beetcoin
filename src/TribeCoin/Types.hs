@@ -35,10 +35,11 @@ instance Serialize BlockHash where
 newtype Timestamp = Timestamp POSIXTime
       deriving (Show, Eq, Ord, Num, Fractional, Real)
 
--- | TODO: I think the get function has a bug.
 instance Serialize Timestamp where
   put (Timestamp time) = put . toRational $ time
-  get = fromRational <$> get
+  get = do
+    rational <- get :: (Get Rational)
+    return . Timestamp . fromRational $ rational
 
 -- ^ A 32 bit number which represents the number of leading 0's that should be in a block header hash.
 -- ^ Is dynamically adjusted.
