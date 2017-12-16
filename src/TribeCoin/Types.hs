@@ -43,6 +43,7 @@ instance Serialize Timestamp where
     rational <- get :: (Get Rational)
     return . Timestamp . fromRational $ rational
 
+-- | A timestamp diff represents the difference in time between two timestamps.
 data TimestampDiff = TimestampDiff NominalDiffTime
     deriving (Show)
 

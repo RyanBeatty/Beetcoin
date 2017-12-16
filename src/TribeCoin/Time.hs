@@ -12,6 +12,8 @@ import Data.Time.Clock.POSIX (getPOSIXTime, posixSecondsToUTCTime)
 getCurrentTimsetamp :: IO Timestamp
 getCurrentTimsetamp = Timestamp <$> getPOSIXTime
 
+-- | Calculate the difference between two timestamps.
+-- diffTimestamps a b = a - b.
 diffTimestamps :: Timestamp -> Timestamp -> TimestampDiff
 diffTimestamps (Timestamp timea) (Timestamp timeb) =
   let utca = posixSecondsToUTCTime timea
