@@ -2,6 +2,7 @@
 module TribeCoin.Types
     ( BlockHash (..)
     , Timestamp (..)
+    , TimestampDiff (..)
     , Difficulty (..)
     , Nonce (..)
     , BlockHeader (..)
@@ -13,6 +14,7 @@ import Crypto.Hash (Digest, SHA256, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString)
 import Data.Serialize (Serialize, put, get, Get)
+import Data.Time (NominalDiffTime (..))
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.UnixTime (UnixTime (..))
 import Data.Word (Word32, Word8)
@@ -40,6 +42,9 @@ instance Serialize Timestamp where
   get = do
     rational <- get :: (Get Rational)
     return . Timestamp . fromRational $ rational
+
+data TimestampDiff = TimestampDiff NominalDiffTime
+    deriving (Show)
 
 -- ^ A 32 bit number which represents the number of leading 0's that should be in a block header hash.
 -- ^ Is dynamically adjusted.
