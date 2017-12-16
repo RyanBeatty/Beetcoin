@@ -10,16 +10,17 @@ module TribeCoin.Types
     ) where
 
 import Control.Monad.Fail as MF (fail)
-import Crypto.Hash (Digest, SHA256, digestFromByteString)
+import Crypto.Hash (Digest, SHA256, RIPEMD160, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString)
 import Data.Serialize (Serialize, put, get, Get)
 import Data.Time (NominalDiffTime (..))
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.UnixTime (UnixTime (..))
-import Data.Word (Word32, Word8)
+import Data.Word (Word32, Word64)
 import Foreign.C.Types (CTime (..))
 import GHC.Generics (Generic)
+import Numeric (showHex)
 
 -- ^ The sha256 hash of a block header.
 newtype BlockHash = BlockHash (Digest SHA256)
@@ -32,6 +33,10 @@ instance Serialize BlockHash where
     case digestFromByteString byte_string of
       Nothing       -> MF.fail "Invalid BlockHash"
       (Just digest) -> return $ BlockHash digest
+
+-----------------------------------------------------------------------------------------
+-- Time related types.
+-----------------------------------------------------------------------------------------
 
 -- | A timestamp is the amount of seconds since the posix epoch.
 newtype Timestamp = Timestamp POSIXTime
@@ -46,6 +51,7 @@ instance Serialize Timestamp where
 -- | A timestamp diff represents the difference in time between two timestamps.
 data TimestampDiff = TimestampDiff NominalDiffTime
     deriving (Show)
+-----------------------------------------------------------------------------------------
 
 -- ^ A 32 bit number which represents the number of leading 0's that should be in a block header hash.
 -- ^ Is dynamically adjusted.
@@ -67,13 +73,55 @@ data BlockHeader = BlockHeader
   } deriving (Show, Generic)
 instance Serialize BlockHeader
 
-newtype Amount = Amount Word8
-      deriving (Show, Eq)
+-----------------------------------------------------------------------------------------
+-- Transaction related types.
+-----------------------------------------------------------------------------------------
+
+-- | The amount of tribe coin being transferred in a transaction output.
+newtype Amount = Amount Word64
+  deriving (Show)
+
+-- | The checksum used to verify a public key hash has not been altered. Obtained by
+-- taking the first 4 bytes of an address version + public key hash after furthering
+-- hashing it twice with sha256.
+newtype AddressChecksum = AddressChecksum Word32
+  deriving (Show)
+
+-- | The version of validation rules a transaction should be validated against.
+-- This might not be necessary in the long term, but its nice to have just in case.
+data TXVersion = TXVersion
+
+instance Show TXVersion where
+  show TXVersion = showHex 1 ""
+
+-- | The type of address a payment is being made to. Right now only support direct pay to
+-- a public key hash.
+data AddressVersion = AddressVersion
+
+instance Show AddressVersion where
+  show AddressVersion = showHex 1 ""
+
+-- | Represents the hash of a public key. Obtained by hashing the public key of a user
+-- first with sha256 and then with ripemd160.
+newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
+  deriving (Show)
+
+-- | A tribe coin address represents a destination which coin can be sent to.
+data TribeCoinAddress = TribeCoinAddress
+  { _addressVersion :: AddressVersion -- ^ The type of this address.
+  , _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
+  , _checksum :: AddressChecksum -- ^ checksum for the version + public key hash.
+  } deriving (Show)
+
+data TXOut = TXOut
+  { _amount :: Amount
+  , _receiverAddress :: TribeCoinAddress
+  } deriving (Show)
 
 data Transaction = Transaction
-  { _sender :: ()
+  { _txVersion :: TXVersion
+  , _sender :: ()
   , _receiver :: ()
-  , _amount :: Amount
   } deriving (Show)
 
 data Block = Block
