@@ -97,17 +97,6 @@ data TXVersion = TXVersion
 instance Show TXVersion where
   show TXVersion = showHex 1 ""
 
--- | The type of address a payment is being made to. Right now only support direct pay to
--- a public key hash.
-data AddressVersion = AddressVersion
-
-instance Show AddressVersion where
-  show AddressVersion = showHex 1 ""
-
-instance Serialize AddressVersion where
-  put AddressVersion = put (1 :: Word8)
-  get = return (AddressVersion)
-
 -- | Represents the hash of a public key. Obtained by hashing the public key of a user
 -- first with sha256 and then with ripemd160.
 newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
@@ -122,19 +111,21 @@ instance Serialize PubKeyHash where
       Nothing       -> MF.fail "Invalid PubKeyHash"
       (Just digest) -> return $ PubKeyHash digest
 
+addressPrefix :: Word32
+addressPrefix = 1
+
 -- | A tribe coin address represents a destination which coin can be sent to.
 data TribeCoinAddress = TribeCoinAddress
-  { _addressVersion :: AddressVersion -- ^ The type of this address.
-  , _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
+  { _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
   , _checksum :: AddressChecksum -- ^ checksum for the version + public key hash.
   }
 
 instance Show TribeCoinAddress where
-  show (TribeCoinAddress version hash checksum) = ""
+  show (TribeCoinAddress hash checksum) = "" 
 
 instance Serialize TribeCoinAddress where
-  put (TribeCoinAddress version hash checksum) =
-    let version'  = encode version
+  put (TribeCoinAddress hash checksum) =
+    let version'  = encode addressPrefix
         hash'     = encode hash
         checksum' = encode checksum
         bytes     = version' `BS.append` hash' `BS.append` checksum'
@@ -142,10 +133,10 @@ instance Serialize TribeCoinAddress where
 
   get = do
     decodeBase58 bitcoinAlphabet <$> get
-    version <- get :: Get AddressVersion
+    _ <- get :: Get Word32
     hash <- get :: Get PubKeyHash
     checksum <- get :: Get AddressChecksum
-    return $ TribeCoinAddress version hash checksum
+    return $ TribeCoinAddress hash checksum
 
 data TXOut = TXOut
   { _amount :: Amount
