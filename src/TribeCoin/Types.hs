@@ -12,12 +12,13 @@ module TribeCoin.Types
 import Control.Monad.Fail as MF (fail)
 import Crypto.Hash (Digest, SHA256, RIPEMD160, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
-import qualified Data.ByteString as BS (ByteString)
-import Data.Serialize (Serialize, put, get, Get)
+import qualified Data.ByteString as BS (ByteString, append)
+import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
+import Data.Serialize (Serialize, put, get, Get, Putter, encode)
 import Data.Time (NominalDiffTime (..))
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.UnixTime (UnixTime (..))
-import Data.Word (Word32, Word64)
+import Data.Word (Word32, Word64, Word8)
 import Foreign.C.Types (CTime (..))
 import GHC.Generics (Generic)
 import Numeric (showHex)
@@ -85,7 +86,9 @@ newtype Amount = Amount Word64
 -- taking the first 4 bytes of an address version + public key hash after furthering
 -- hashing it twice with sha256.
 newtype AddressChecksum = AddressChecksum Word32
-  deriving (Show)
+  deriving (Show, Generic)
+
+instance Serialize AddressChecksum
 
 -- | The version of validation rules a transaction should be validated against.
 -- This might not be necessary in the long term, but its nice to have just in case.
@@ -101,17 +104,48 @@ data AddressVersion = AddressVersion
 instance Show AddressVersion where
   show AddressVersion = showHex 1 ""
 
+instance Serialize AddressVersion where
+  put AddressVersion = put (1 :: Word8)
+  get = return (AddressVersion)
+
 -- | Represents the hash of a public key. Obtained by hashing the public key of a user
 -- first with sha256 and then with ripemd160.
 newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
   deriving (Show)
+
+-- TODO: See if I can share code between BlockHash's Serialize instance.
+instance Serialize PubKeyHash where
+  put (PubKeyHash digest) = put $ (convert digest :: BS.ByteString)
+  get = do
+    byte_string <- get :: (Get BS.ByteString)
+    case digestFromByteString byte_string of
+      Nothing       -> MF.fail "Invalid PubKeyHash"
+      (Just digest) -> return $ PubKeyHash digest
 
 -- | A tribe coin address represents a destination which coin can be sent to.
 data TribeCoinAddress = TribeCoinAddress
   { _addressVersion :: AddressVersion -- ^ The type of this address.
   , _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
   , _checksum :: AddressChecksum -- ^ checksum for the version + public key hash.
-  } deriving (Show)
+  }
+
+instance Show TribeCoinAddress where
+  show (TribeCoinAddress version hash checksum) = ""
+
+instance Serialize TribeCoinAddress where
+  put (TribeCoinAddress version hash checksum) =
+    let version'  = encode version
+        hash'     = encode hash
+        checksum' = encode checksum
+        bytes     = version' `BS.append` hash' `BS.append` checksum'
+    in put . encodeBase58 bitcoinAlphabet $ bytes 
+
+  get = do
+    decodeBase58 bitcoinAlphabet <$> get
+    version <- get :: Get AddressVersion
+    hash <- get :: Get PubKeyHash
+    checksum <- get :: Get AddressChecksum
+    return $ TribeCoinAddress version hash checksum
 
 data TXOut = TXOut
   { _amount :: Amount
