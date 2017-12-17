@@ -7,6 +7,11 @@ module TribeCoin.Types
     , Nonce (..)
     , BlockHeader (..)
     , Block (..)
+    , Amount (..)
+    , AddressChecksum (..)
+    , TXVersion (..)
+    , PubKeyHash (..)
+    , TribeCoinAddress (..)
     ) where
 
 import Control.Monad.Fail as MF (fail)
@@ -14,7 +19,7 @@ import Crypto.Hash (Digest, SHA256, RIPEMD160, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
-import Data.Serialize (Serialize, put, get, Get, Putter, encode)
+import Data.Serialize (Serialize, Get, Putter, put, get, encode, runPut, runGet)
 import Data.Time (NominalDiffTime (..))
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.UnixTime (UnixTime (..))
@@ -86,7 +91,10 @@ newtype Amount = Amount Word64
 -- taking the first 4 bytes of an address version + public key hash after furthering
 -- hashing it twice with sha256.
 newtype AddressChecksum = AddressChecksum Word32
-  deriving (Show, Generic)
+  deriving (Generic)
+
+instance Show AddressChecksum where
+  show (AddressChecksum checksum) = showHex checksum ""
 
 instance Serialize AddressChecksum
 
@@ -111,6 +119,7 @@ instance Serialize PubKeyHash where
       Nothing       -> MF.fail "Invalid PubKeyHash"
       (Just digest) -> return $ PubKeyHash digest
 
+-- | Prefix for tribe coin addresses.
 addressPrefix :: Word32
 addressPrefix = 1
 
@@ -121,22 +130,29 @@ data TribeCoinAddress = TribeCoinAddress
   }
 
 instance Show TribeCoinAddress where
-  show (TribeCoinAddress hash checksum) = "" 
+  show = show . encode
 
 instance Serialize TribeCoinAddress where
-  put (TribeCoinAddress hash checksum) =
-    let version'  = encode addressPrefix
-        hash'     = encode hash
-        checksum' = encode checksum
-        bytes     = version' `BS.append` hash' `BS.append` checksum'
-    in put . encodeBase58 bitcoinAlphabet $ bytes 
+  put (TribeCoinAddress hash checksum) = do
+    put . encodeBase58 bitcoinAlphabet . runPut $ do
+      put addressPrefix
+      put hash
+      put checksum
 
   get = do
-    decodeBase58 bitcoinAlphabet <$> get
-    _ <- get :: Get Word32
-    hash <- get :: Get PubKeyHash
-    checksum <- get :: Get AddressChecksum
-    return $ TribeCoinAddress hash checksum
+    bytes <- get :: Get BS.ByteString
+    case decodeBase58 bitcoinAlphabet bytes of
+      Nothing     -> MF.fail "Invalid base58 encoded TribeCoinAddress."
+      Just bytes' ->
+        let parseAddress :: BS.ByteString -> Either String TribeCoinAddress
+            parseAddress = \b -> flip runGet b $ do
+              _        <- get :: Get Word32
+              hash     <- get :: Get PubKeyHash
+              checksum <- get :: Get AddressChecksum
+              return $ TribeCoinAddress hash checksum
+        in case parseAddress bytes' of
+          Left error    -> MF.fail error
+          Right address -> return address
 
 data TXOut = TXOut
   { _amount :: Amount
