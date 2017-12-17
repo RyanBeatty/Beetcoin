@@ -85,30 +85,25 @@ instance Serialize BlockHeader
 
 -- | The amount of tribe coin being transferred in a transaction output.
 newtype Amount = Amount Word64
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | The checksum used to verify a public key hash has not been altered. Obtained by
 -- taking the first 4 bytes of an address version + public key hash after furthering
 -- hashing it twice with sha256.
 newtype AddressChecksum = AddressChecksum Word32
-  deriving (Generic)
-
-instance Show AddressChecksum where
-  show (AddressChecksum checksum) = showHex checksum ""
+  deriving (Show, Eq, Generic)
 
 instance Serialize AddressChecksum
 
 -- | The version of validation rules a transaction should be validated against.
 -- This might not be necessary in the long term, but its nice to have just in case.
 data TXVersion = TXVersion
-
-instance Show TXVersion where
-  show TXVersion = showHex 1 ""
+  deriving (Show)
 
 -- | Represents the hash of a public key. Obtained by hashing the public key of a user
 -- first with sha256 and then with ripemd160.
 newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- TODO: See if I can share code between BlockHash's Serialize instance.
 instance Serialize PubKeyHash where
@@ -127,12 +122,12 @@ addressPrefix = 1
 data TribeCoinAddress = TribeCoinAddress
   { _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
   , _checksum :: AddressChecksum -- ^ checksum for the version + public key hash.
-  }
-
-instance Show TribeCoinAddress where
-  show = show . encode
+  } deriving (Show, Eq)
 
 instance Serialize TribeCoinAddress where
+  -- | A tribe coin address is serialized by concatentating a version number, the public
+  -- key hash, and the checksum together as bytes and then base58 encoding the
+  -- bytestring.
   put (TribeCoinAddress hash checksum) = do
     put . encodeBase58 bitcoinAlphabet . runPut $ do
       put addressPrefix
@@ -140,10 +135,12 @@ instance Serialize TribeCoinAddress where
       put checksum
 
   get = do
+    -- First reverse the base58 encoding.
     bytes <- get :: Get BS.ByteString
     case decodeBase58 bitcoinAlphabet bytes of
       Nothing     -> MF.fail "Invalid base58 encoded TribeCoinAddress."
       Just bytes' ->
+        -- Then try and parse the address.
         let parseAddress :: BS.ByteString -> Either String TribeCoinAddress
             parseAddress = \b -> flip runGet b $ do
               _        <- get :: Get Word32
