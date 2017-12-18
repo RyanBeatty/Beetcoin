@@ -170,12 +170,12 @@ instance Serialize TribeCoinAddress where
           Left error    -> MF.fail error
           Right address -> return address
 
-data TXOut = TXOut
+data TxOut = TxOut
   { _amount :: Amount
   , _receiverAddress :: TribeCoinAddress
   } deriving (Show, Generic)
   
-instance Serialize TXOut
+instance Serialize TxOut
 
 newtype TXId = TXId (Digest SHA256)
   deriving (Show, Eq)
