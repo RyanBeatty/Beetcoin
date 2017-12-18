@@ -177,12 +177,12 @@ data TxOut = TxOut
   
 instance Serialize TxOut
 
-newtype TXId = TXId (Digest SHA256)
+newtype TxId = TxId (Digest SHA256)
   deriving (Show, Eq)
 
-instance Serialize TXId where
-  put (TXId digest) = putDigest digest
-  get = TXId <$> getDigest 256 "Invalid TXId"
+instance Serialize TxId where
+  put (TxId digest) = putDigest digest
+  get = TxId <$> getDigest 256 "Invalid TxId"
 
 newtype TXIndex = TXIndex Word32
   deriving (Show, Eq, Generic)
@@ -190,7 +190,7 @@ newtype TXIndex = TXIndex Word32
 instance Serialize TXIndex
 
 data Outpoint = Outpoint
-  { txId :: TXId
+  { txId :: TxId
   , txIndex :: TXIndex
   } deriving (Show, Eq, Generic)
 
