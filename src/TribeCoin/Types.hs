@@ -170,13 +170,16 @@ instance Serialize TribeCoinAddress where
           Left error    -> MF.fail error
           Right address -> return address
 
+-- | Represents a transaction output.
 data TxOut = TxOut
-  { _amount :: Amount
-  , _receiverAddress :: TribeCoinAddress
+  { _amount :: Amount -- ^ The amount of coin in this output this can be spent.
+  , _receiverAddress :: TribeCoinAddress -- ^ The recipient of the transaction.
   } deriving (Show, Generic)
   
 instance Serialize TxOut
 
+-- | Represents identifier of an unspent transaction in a transaction input.
+-- Created by double sha256 hashing the transaction.
 newtype TxId = TxId (Digest SHA256)
   deriving (Show, Eq)
 
@@ -184,17 +187,25 @@ instance Serialize TxId where
   put (TxId digest) = putDigest digest
   get = TxId <$> getDigest 256 "Invalid TxId"
 
+-- | Represents the index of a specific unspent transaction in a full transaction set.
 newtype TXIndex = TXIndex Word32
   deriving (Show, Eq, Generic)
 
 instance Serialize TXIndex
 
+-- | Represents a specific output of a specific transaction.
 data Outpoint = Outpoint
-  { txId :: TxId
-  , txIndex :: TXIndex
+  { _txId :: TxId -- ^ The id of the transaction.
+  , _txIndex :: TXIndex -- ^ The output index within the transaction.
   } deriving (Show, Eq, Generic)
 
 instance Serialize Outpoint
+
+-- | Represents an input to a transaction.
+data TxIn = TxIn
+  { _prevOutput :: Outpoint -- ^ A specific output of a transaction that will be spent.
+  , _signature :: () -- ^ Proof of ownership over the coins in |_prevOutput|.
+  } deriving (Show)
 
 data Transaction = Transaction
   { _txVersion :: TXVersion
