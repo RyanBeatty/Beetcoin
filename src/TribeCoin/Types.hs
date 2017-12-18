@@ -19,7 +19,10 @@ import Crypto.Hash (Digest, SHA256, RIPEMD160, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
-import Data.Serialize (Serialize, Get, Putter, put, get, encode, runPut, runGet, putByteString)
+import Data.Serialize
+  (Serialize, Get, Putter, put, get, encode,
+   runPut, runGet, putByteString, remaining, getByteString
+  )
 import Data.Time (NominalDiffTime (..))
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.UnixTime (UnixTime (..))
@@ -109,7 +112,7 @@ newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
 instance Serialize PubKeyHash where
   put (PubKeyHash digest) = putByteString $ (convert digest :: BS.ByteString)
   get = do
-    byte_string <- get :: (Get BS.ByteString)
+    byte_string <- remaining >>= \n -> getByteString n
     case digestFromByteString byte_string of
       Nothing       -> MF.fail "Invalid PubKeyHash"
       (Just digest) -> return $ PubKeyHash digest

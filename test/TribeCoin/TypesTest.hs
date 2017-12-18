@@ -24,11 +24,18 @@ spec_PubKeyHash :: HS.Spec
 spec_PubKeyHash = do
   HS.describe "PubKeyHash Tests" $ do
     HS.describe "Encoding Tests" $ do
+      -- Verify that an encoded public key hash is the same as its raw representation.
       HS.it "Encoding Works" $ do
         encode pubKeyHash `HS.shouldBe` rawPubKeyHash
-
+      
+      -- Makes sure that the encoded public key hash is 20 bytes long.
       HS.it "Encoded Length" $ do
         (BS.length . encode $ pubKeyHash) `HS.shouldBe` 20
+
+    HS.describe "Decoding Tests" $ do
+      -- Verify that decoding a raw public key results in the correct internal representation.
+      HS.it "Decode Works" $ do
+        decode rawPubKeyHash `HS.shouldBe` Right pubKeyHash
 
 
 -- spec_TribeCoinAddress :: HS.Spec
