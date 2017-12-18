@@ -15,12 +15,12 @@ module TribeCoin.Types
     ) where
 
 import Control.Monad.Fail as MF (fail)
-import Crypto.Hash (Digest, SHA256, RIPEMD160, digestFromByteString)
+import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
 import Data.Serialize
-  (Serialize, Get, Putter, put, get, encode,
+  (Serialize, Get, Putter, Put, put, get, encode,
    runPut, runGet, putByteString, remaining, getByteString
   )
 import Data.Time (NominalDiffTime (..))
@@ -35,13 +35,25 @@ import Numeric (showHex)
 newtype BlockHash = BlockHash (Digest SHA256)
       deriving (Show, Eq)
 
+-- | Utility function for serializing a Digest.
+putDigest :: HashAlgorithm a
+          => Digest a -- ^ The digest to serialize.
+          -> Put
+putDigest = putByteString . convert
+
+-- | Utility function for deserializing a Digest.
+getDigest :: HashAlgorithm a
+          => String -- ^ Error message to print on failure.
+          -> Get (Digest a)
+getDigest error_msg = do
+  byte_string <- remaining >>= \n -> getByteString n
+  case digestFromByteString byte_string of
+    Nothing       -> MF.fail error_msg
+    (Just digest) -> return digest
+
 instance Serialize BlockHash where
-  put (BlockHash digest) = putByteString $ (convert digest :: BS.ByteString)
-  get = do
-    byte_string <- get :: (Get BS.ByteString)
-    case digestFromByteString byte_string of
-      Nothing       -> MF.fail "Invalid BlockHash"
-      (Just digest) -> return $ BlockHash digest
+  put (BlockHash digest) = putDigest digest 
+  get = BlockHash <$> getDigest "Invalid BlockHash"
 
 -----------------------------------------------------------------------------------------
 -- Time related types.
@@ -108,14 +120,9 @@ data TXVersion = TXVersion
 newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
   deriving (Show, Eq)
 
--- TODO: See if I can share code between BlockHash's Serialize instance.
 instance Serialize PubKeyHash where
-  put (PubKeyHash digest) = putByteString $ (convert digest :: BS.ByteString)
-  get = do
-    byte_string <- remaining >>= \n -> getByteString n
-    case digestFromByteString byte_string of
-      Nothing       -> MF.fail "Invalid PubKeyHash"
-      (Just digest) -> return $ PubKeyHash digest
+  put (PubKeyHash digest) = putDigest digest
+  get = PubKeyHash <$> getDigest "Invalid PubKeyHash"
 
 -- | Prefix for tribe coin addresses.
 addressPrefix :: Word32
