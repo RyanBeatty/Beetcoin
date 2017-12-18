@@ -125,9 +125,15 @@ instance Serialize PubKeyHash where
   put (PubKeyHash digest) = putDigest digest
   get = PubKeyHash <$> getDigest 20 "Invalid PubKeyHash"
 
+-- ^ The prefix that is prepended to the payment script (e.g. tribe coin address).
+newtype Prefix = Prefix Word8
+  deriving (Show, Generic)
+
+instance Serialize Prefix
+
 -- | Version byte prefix for tribe coin addresses.
-addressPrefix :: Word8
-addressPrefix = 0x00
+addressPrefix :: Prefix
+addressPrefix = Prefix 0x00
 
 -- | A tribe coin address represents a destination which coin can be sent to.
 data TribeCoinAddress = TribeCoinAddress
@@ -154,7 +160,7 @@ instance Serialize TribeCoinAddress where
         -- Then try and parse the address.
         let parseAddress :: BS.ByteString -> Either String TribeCoinAddress
             parseAddress = \b -> flip runGet b $ do
-              _        <- get :: Get Word8
+              _        <- get :: Get Prefix
               hash     <- get :: Get PubKeyHash
               checksum <- get :: Get AddressChecksum
               return $ TribeCoinAddress hash checksum
