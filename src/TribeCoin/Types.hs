@@ -43,17 +43,18 @@ putDigest = putByteString . convert
 
 -- | Utility function for deserializing a Digest.
 getDigest :: HashAlgorithm a
-          => String -- ^ Error message to print on failure.
+          => Int -- ^ The amount of bytes to read from the input state.
+          -> String -- ^ Error message to print on failure.
           -> Get (Digest a)
-getDigest error_msg = do
-  byte_string <- remaining >>= \n -> getByteString n
+getDigest num error_msg = do
+  byte_string <- getByteString num
   case digestFromByteString byte_string of
     Nothing       -> MF.fail error_msg
     (Just digest) -> return digest
 
 instance Serialize BlockHash where
   put (BlockHash digest) = putDigest digest 
-  get = BlockHash <$> getDigest "Invalid BlockHash"
+  get = BlockHash <$> getDigest 32 "Invalid BlockHash"
 
 -----------------------------------------------------------------------------------------
 -- Time related types.
@@ -122,7 +123,7 @@ newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
 
 instance Serialize PubKeyHash where
   put (PubKeyHash digest) = putDigest digest
-  get = PubKeyHash <$> getDigest "Invalid PubKeyHash"
+  get = PubKeyHash <$> getDigest 20 "Invalid PubKeyHash"
 
 -- | Version byte prefix for tribe coin addresses.
 addressPrefix :: Word8
@@ -146,14 +147,14 @@ instance Serialize TribeCoinAddress where
 
   get = do
     -- First reverse the base58 encoding.
-    bytes <- get :: Get BS.ByteString
+    bytes <- remaining >>= \n -> getByteString n
     case decodeBase58 bitcoinAlphabet bytes of
       Nothing     -> MF.fail "Invalid base58 encoded TribeCoinAddress."
       Just bytes' ->
         -- Then try and parse the address.
         let parseAddress :: BS.ByteString -> Either String TribeCoinAddress
             parseAddress = \b -> flip runGet b $ do
-              _        <- get :: Get Word32
+              _        <- get :: Get Word8
               hash     <- get :: Get PubKeyHash
               checksum <- get :: Get AddressChecksum
               return $ TribeCoinAddress hash checksum

@@ -49,7 +49,21 @@ rawTribeCoinAddress = encodeBase58 bitcoinAlphabet . BS.pack $
 spec_TribeCoinAddress :: HS.Spec
 spec_TribeCoinAddress = do
   HS.describe "TribeCoinAddress" $ do
-    HS.it "Encoding works" $ do
-      let checksum = AddressChecksum (0xD61967F6 :: Word32)
-      let address  = TribeCoinAddress pubKeyHash checksum
-      (encode $ address) `HS.shouldBe` rawTribeCoinAddress
+    let checksum = AddressChecksum (0xD61967F6 :: Word32)
+    let address  = TribeCoinAddress pubKeyHash checksum
+    
+    HS.describe "Encoding Tests" $ do
+      -- Verify that an encoded tribe coin address is the same as its raw representation.
+      HS.it "Encoding Works" $ do
+        encode address `HS.shouldBe` rawTribeCoinAddress
+
+      -- Verify that an encoded tribe coin address has a length of 33 bytes.
+      -- TODO: Make sure 33 is the correct number here. It should be 25 bytes before it is
+      -- base58 encoded.
+      HS.it "Encoded Length" $ do
+        (BS.length . encode $ address) `HS.shouldBe` 33
+  
+    HS.describe "Decoding Tests" $ do
+      -- Verify that a decoded raw tribe coin address matches its internal representation.
+      HS.it "Decode Works" $ do
+        decode rawTribeCoinAddress `HS.shouldBe` Right address 
