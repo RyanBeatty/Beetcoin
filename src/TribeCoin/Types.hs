@@ -17,7 +17,7 @@ module TribeCoin.Types
 import Control.Monad.Fail as MF (fail)
 import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
-import qualified Data.ByteString as BS (ByteString, append)
+import qualified Data.ByteString as BS (ByteString, append, length)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
 import Data.Serialize
   (Serialize, Get, Putter, Put, put, get, encode,
@@ -101,7 +101,9 @@ instance Serialize BlockHeader
 
 -- | The amount of tribe coin being transferred in a transaction output.
 newtype Amount = Amount Word64
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance Serialize Amount
 
 -- | The checksum used to verify a public key hash has not been altered. Obtained by
 -- taking the first 4 bytes of an address version + public key hash after furthering
@@ -171,7 +173,28 @@ instance Serialize TribeCoinAddress where
 data TXOut = TXOut
   { _amount :: Amount
   , _receiverAddress :: TribeCoinAddress
-  } deriving (Show)
+  } deriving (Show, Generic)
+  
+instance Serialize TXOut
+
+newtype TXId = TXId (Digest SHA256)
+  deriving (Show, Eq)
+
+instance Serialize TXId where
+  put (TXId digest) = putDigest digest
+  get = TXId <$> getDigest 256 "Invalid TXId"
+
+newtype TXIndex = TXIndex Word32
+  deriving (Show, Eq, Generic)
+
+instance Serialize TXIndex
+
+data Outpoint = Outpoint
+  { txId :: TXId
+  , txIndex :: TXIndex
+  } deriving (Show, Eq, Generic)
+
+instance Serialize Outpoint
 
 data Transaction = Transaction
   { _txVersion :: TXVersion
