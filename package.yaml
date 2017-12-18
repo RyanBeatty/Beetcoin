@@ -46,7 +46,7 @@ executables:
 
 tests:
   TribeCoin-test:
-    main:                Spec.hs
+    main:                Driver.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -54,3 +54,6 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - TribeCoin
+    - tasty
+    - tasty-discover
+    - tasty-hspec

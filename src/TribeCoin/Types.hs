@@ -19,7 +19,7 @@ import Crypto.Hash (Digest, SHA256, RIPEMD160, digestFromByteString)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
-import Data.Serialize (Serialize, Get, Putter, put, get, encode, runPut, runGet)
+import Data.Serialize (Serialize, Get, Putter, put, get, encode, runPut, runGet, putByteString)
 import Data.Time (NominalDiffTime (..))
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.UnixTime (UnixTime (..))
@@ -33,7 +33,7 @@ newtype BlockHash = BlockHash (Digest SHA256)
       deriving (Show, Eq)
 
 instance Serialize BlockHash where
-  put (BlockHash digest) = put $ (convert digest :: BS.ByteString)
+  put (BlockHash digest) = putByteString $ (convert digest :: BS.ByteString)
   get = do
     byte_string <- get :: (Get BS.ByteString)
     case digestFromByteString byte_string of
@@ -107,7 +107,7 @@ newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
 
 -- TODO: See if I can share code between BlockHash's Serialize instance.
 instance Serialize PubKeyHash where
-  put (PubKeyHash digest) = put $ (convert digest :: BS.ByteString)
+  put (PubKeyHash digest) = putByteString $ (convert digest :: BS.ByteString)
   get = do
     byte_string <- get :: (Get BS.ByteString)
     case digestFromByteString byte_string of
