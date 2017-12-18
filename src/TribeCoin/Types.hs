@@ -16,6 +16,7 @@ module TribeCoin.Types
 
 import Control.Monad.Fail as MF (fail)
 import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
+import Crypto.PubKey.ECC.ECDSA (PublicKey)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append, length)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
@@ -201,10 +202,18 @@ data Outpoint = Outpoint
 
 instance Serialize Outpoint
 
+newtype PubKey = PubKey PublicKey
+  deriving (Show)
+
+data Signature = Signature
+  { _pubKey :: PubKey
+  , _signature :: ()
+  } deriving (Show)
+
 -- | Represents an input to a transaction.
 data TxIn = TxIn
   { _prevOutput :: Outpoint -- ^ A specific output of a transaction that will be spent.
-  , _signature :: () -- ^ Proof of ownership over the coins in |_prevOutput|.
+  , _ownership :: Signature -- ^ Proof of ownership over the coins in |_prevOutput|.
   } deriving (Show)
 
 data Transaction = Transaction
