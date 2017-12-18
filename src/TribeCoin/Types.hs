@@ -124,9 +124,9 @@ instance Serialize PubKeyHash where
   put (PubKeyHash digest) = putDigest digest
   get = PubKeyHash <$> getDigest "Invalid PubKeyHash"
 
--- | Prefix for tribe coin addresses.
-addressPrefix :: Word32
-addressPrefix = 1
+-- | Version byte prefix for tribe coin addresses.
+addressPrefix :: Word8
+addressPrefix = 0x00
 
 -- | A tribe coin address represents a destination which coin can be sent to.
 data TribeCoinAddress = TribeCoinAddress
@@ -139,7 +139,7 @@ instance Serialize TribeCoinAddress where
   -- key hash, and the checksum together as bytes and then base58 encoding the
   -- bytestring.
   put (TribeCoinAddress hash checksum) = do
-    put . encodeBase58 bitcoinAlphabet . runPut $ do
+    putByteString . encodeBase58 bitcoinAlphabet . runPut $ do
       put addressPrefix
       put hash
       put checksum
