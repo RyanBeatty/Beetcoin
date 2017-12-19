@@ -211,16 +211,17 @@ data Outpoint = Outpoint
 
 instance Serialize Outpoint
 
--- | Represents a public key used in ECDSA with curve secp256k1. Serialized as a DER
--- encoded bytestring.
+-- | Represents a public key used in ECDSA with curve secp256k1.
 newtype PubKey = PubKey ECC.PubKey
   deriving (Show)
 
+-- TODO: Support serializing to/from compressed format.
 instance Serialize PubKey where
   put (PubKey pubkey) = putByteString . ECC.exportPubKey False $ pubkey
   
   get = do
-    bytes <- remaining >>= \n -> getByteString n
+    -- public keys are 65 bytes long (id byte + two 32 byte integers).
+    bytes <- getByteString 65
     case ECC.importPubKey bytes of
       Nothing     -> MF.fail "Invalid DER encoded PubKey."
       Just pubkey -> return . PubKey $ pubkey
