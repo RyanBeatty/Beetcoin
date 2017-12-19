@@ -238,10 +238,15 @@ instance Serialize Sig where
       Nothing  -> MF.fail "Invalid DER encoded Signature."
       Just sig -> return . Sig $ sig
 
+-- | Represents data needed to claim ownership over coins in a specific output.
 data SigScript = SigScript
-  { _pubKey :: PubKey
-  , _sig :: Sig
-  } deriving (Show)
+  { _pubKey :: PubKey -- ^ The public key of the owner.
+  , _sig :: Sig -- ^ The signature used to prove ownership of the private key corresponding to
+                -- ^ the public key.
+  } deriving (Show, Generic)
+
+-- TODO: I think this has bugs because both PubKey and Sig use the remaining function.
+instance Serialize SigScript where
 
 -- | Represents an input to a transaction.
 data TxIn = TxIn
