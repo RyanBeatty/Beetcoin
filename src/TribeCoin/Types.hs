@@ -15,7 +15,7 @@ module TribeCoin.Types
     ) where
 
 import Control.Monad.Fail as MF (fail)
-import qualified Crypto.Secp256k1 as ECC (PubKey)
+import qualified Crypto.Secp256k1 as ECC (PubKey, exportPubKey, importPubKey)
 import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
 import Crypto.PubKey.ECC.ECDSA (PublicKey)
 import Data.ByteArray (ByteArrayAccess, convert)
@@ -56,6 +56,7 @@ getDigest num error_msg = do
 
 instance Serialize BlockHash where
   put (BlockHash digest) = putDigest digest 
+  
   get = BlockHash <$> getDigest 32 "Invalid BlockHash"
 
 -----------------------------------------------------------------------------------------
@@ -68,6 +69,7 @@ newtype Timestamp = Timestamp POSIXTime
 
 instance Serialize Timestamp where
   put (Timestamp time) = put . toRational $ time
+  
   get = do
     rational <- get :: (Get Rational)
     return . Timestamp . fromRational $ rational
@@ -127,6 +129,7 @@ newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
 
 instance Serialize PubKeyHash where
   put (PubKeyHash digest) = putDigest digest
+  
   get = PubKeyHash <$> getDigest 20 "Invalid PubKeyHash"
 
 -- ^ The prefix that is prepended to the payment script (e.g. tribe coin address).
@@ -187,6 +190,7 @@ newtype TxId = TxId (Digest SHA256)
 
 instance Serialize TxId where
   put (TxId digest) = putDigest digest
+  
   get = TxId <$> getDigest 256 "Invalid TxId"
 
 -- | Represents the index of a specific unspent transaction in a full transaction set.
@@ -203,18 +207,28 @@ data Outpoint = Outpoint
 
 instance Serialize Outpoint
 
+-- | Represents a public key used in ECDSA. Serialized as a DER encoded bytestring.
 newtype PubKey = PubKey ECC.PubKey
   deriving (Show)
 
+instance Serialize PubKey where
+  put (PubKey pubkey) = putByteString . ECC.exportPubKey False $ pubkey
+  
+  get = do
+    bytes <- remaining >>= \n -> getByteString n
+    case ECC.importPubKey bytes of
+      Nothing     -> MF.fail "Invalid DER encoded PubKey."
+      Just pubkey -> return . PubKey $ pubkey
+
 data Signature = Signature
   { _pubKey :: PubKey
-  , _signature :: ()
+  , _sig :: ()
   } deriving (Show)
 
 -- | Represents an input to a transaction.
 data TxIn = TxIn
   { _prevOutput :: Outpoint -- ^ A specific output of a transaction that will be spent.
-  , _ownership :: Signature -- ^ Proof of ownership over the coins in |_prevOutput|.
+  , _signature :: Signature -- ^ Proof of ownership over the coins in |_prevOutput|.
   } deriving (Show)
 
 data Transaction = Transaction
