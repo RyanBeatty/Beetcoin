@@ -27,6 +27,7 @@ dependencies:
 - cereal
 - cryptonite
 - memory
+- secp256k1
 - time
 - unix-time
 

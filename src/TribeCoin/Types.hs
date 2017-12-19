@@ -15,6 +15,7 @@ module TribeCoin.Types
     ) where
 
 import Control.Monad.Fail as MF (fail)
+import qualified Crypto.Secp256k1 as ECC (PubKey)
 import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
 import Crypto.PubKey.ECC.ECDSA (PublicKey)
 import Data.ByteArray (ByteArrayAccess, convert)
@@ -202,7 +203,7 @@ data Outpoint = Outpoint
 
 instance Serialize Outpoint
 
-newtype PubKey = PubKey PublicKey
+newtype PubKey = PubKey ECC.PubKey
   deriving (Show)
 
 data Signature = Signature
