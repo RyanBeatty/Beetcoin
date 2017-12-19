@@ -235,6 +235,7 @@ instance Serialize Sig where
   put (Sig sig) = putByteString . ECC.exportSig $ sig
 
   get = do
+    -- TODO: remove remaining call. This will lead to bugs in the future.
     bytes <- remaining >>= \n -> getByteString n
     case ECC.importSig bytes of
       Nothing  -> MF.fail "Invalid DER encoded Signature."
