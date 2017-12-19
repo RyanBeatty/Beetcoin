@@ -15,15 +15,18 @@ module TribeCoin.Types
     ) where
 
 import Control.Monad.Fail as MF (fail)
-import qualified Crypto.Secp256k1 as ECC (PubKey, exportPubKey, importPubKey)
+import qualified Crypto.Secp256k1 as ECC 
+  ( PubKey, Sig, exportPubKey
+  , importPubKey, importSig, exportSig
+  )
 import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
 import Crypto.PubKey.ECC.ECDSA (PublicKey)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append, length)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
 import Data.Serialize
-  (Serialize, Get, Putter, Put, put, get, encode,
-   runPut, runGet, putByteString, remaining, getByteString
+  ( Serialize, Get, Putter, Put, put, get, encode
+  , runPut, runGet, putByteString, remaining, getByteString
   )
 import Data.Time (NominalDiffTime (..))
 import Data.Time.Clock.POSIX (POSIXTime)
@@ -207,7 +210,8 @@ data Outpoint = Outpoint
 
 instance Serialize Outpoint
 
--- | Represents a public key used in ECDSA. Serialized as a DER encoded bytestring.
+-- | Represents a public key used in ECDSA with curve secp256k1. Serialized as a DER
+-- encoded bytestring.
 newtype PubKey = PubKey ECC.PubKey
   deriving (Show)
 
@@ -220,15 +224,29 @@ instance Serialize PubKey where
       Nothing     -> MF.fail "Invalid DER encoded PubKey."
       Just pubkey -> return . PubKey $ pubkey
 
-data Signature = Signature
+-- | Represents a ECDSA signature using the secp256k1 curve. Serialized as a DER
+-- encoded bytestring.
+newtype Sig = Sig ECC.Sig
+  deriving (Show)
+
+instance Serialize Sig where
+  put (Sig sig) = putByteString . ECC.exportSig $ sig
+
+  get = do
+    bytes <- remaining >>= \n -> getByteString n
+    case ECC.importSig bytes of
+      Nothing  -> MF.fail "Invalid DER encoded Signature."
+      Just sig -> return . Sig $ sig
+
+data SigScript = SigScript
   { _pubKey :: PubKey
-  , _sig :: ()
+  , _sig :: Sig
   } deriving (Show)
 
 -- | Represents an input to a transaction.
 data TxIn = TxIn
   { _prevOutput :: Outpoint -- ^ A specific output of a transaction that will be spent.
-  , _signature :: Signature -- ^ Proof of ownership over the coins in |_prevOutput|.
+  , _sigScript :: SigScript -- ^ Proof of ownership over the coins in |_prevOutput|.
   } deriving (Show)
 
 data Transaction = Transaction
