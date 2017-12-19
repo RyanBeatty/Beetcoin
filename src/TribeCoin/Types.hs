@@ -146,6 +146,7 @@ addressPrefix :: Prefix
 addressPrefix = Prefix 0x00
 
 -- | A tribe coin address represents a destination which coin can be sent to.
+-- Should be 33 bytes long when serialized.
 data TribeCoinAddress = TribeCoinAddress
   { _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
   , _checksum :: AddressChecksum -- ^ checksum for the version + public key hash.
@@ -163,7 +164,7 @@ instance Serialize TribeCoinAddress where
 
   get = do
     -- First reverse the base58 encoding.
-    bytes <- remaining >>= \n -> getByteString n
+    bytes <- getByteString 33
     case decodeBase58 bitcoinAlphabet bytes of
       Nothing     -> MF.fail "Invalid base58 encoded TribeCoinAddress."
       Just bytes' ->
