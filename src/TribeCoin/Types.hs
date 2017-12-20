@@ -106,6 +106,9 @@ instance Serialize BlockHeader
 -- Transaction related types.
 -----------------------------------------------------------------------------------------
 
+-- TODO: Reconsider how I am doing serialization. Do I want to use something like protocol
+-- buffers or Apache Thrift?
+
 -- | The amount of tribe coin being transferred in a transaction output.
 newtype Amount = Amount Word64
   deriving (Show, Eq, Generic)
@@ -258,9 +261,10 @@ data TxIn = TxIn
   } deriving (Show)
 
 data Transaction = Transaction
-  { _txVersion :: TXVersion
-  , _sender :: ()
-  , _receiver :: ()
+  { _inputs :: [TxIn]
+  , _outputs :: [TxOut]
+  -- TODO: Double check this is actually a timetamp/what this is used for
+  , _lockTime :: Timestamp
   } deriving (Show)
 
 data Block = Block
