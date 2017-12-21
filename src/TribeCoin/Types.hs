@@ -263,8 +263,6 @@ data TxIn = TxIn
 data Transaction = Transaction
   { _inputs :: [TxIn]
   , _outputs :: [TxOut]
-  -- TODO: Double check this is actually a timetamp/what this is used for
-  , _lockTime :: Timestamp
   } deriving (Show)
 
 data Block = Block
