@@ -260,10 +260,18 @@ data TxIn = TxIn
   , _sigScript :: SigScript -- ^ Proof of ownership over the coins in |_prevOutput|.
   } deriving (Show)
 
-data Transaction = Transaction
-  { _inputs :: [TxIn]
-  , _outputs :: [TxOut]
-  } deriving (Show)
+data CbIn = CbIn
+  deriving (Show)
+
+data Transaction =
+    Transaction
+      { _inputs :: [TxIn]
+      , _outputs :: [TxOut]
+      }
+  | CoinbaseTransaction 
+      { _cbInputs :: CbIn
+      , _cbOutputs :: TxOut
+      } deriving (Show)
 
 data Block = Block
   { _blockHeader :: BlockHeader
