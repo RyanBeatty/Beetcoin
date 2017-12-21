@@ -34,16 +34,16 @@ blockHashPrefixes ::
   BlockHeader -- ^ The block header to hash.
   -> Int      -- ^ The lenght of the hash prefix we want.
   -> [(Nonce, BS.ByteString)]
-blockHashPrefixes block_header difficulty = (fmap . fmap) (BS.take difficulty . encode . hashBlockHeader) . blocks $ block_header
+blockHashPrefixes block_header target = (fmap . fmap) (BS.take target . encode . hashBlockHeader) . blocks $ block_header
 
 -- | Calculates the proof of work for a block header.
 mineBlock ::
   BlockHeader -- ^ The block header without a proof of work.
   -> BlockHeader
 mineBlock block_header =
-  let difficulty = fromIntegral . _difficulty $ block_header
-      prefix    = BS.replicate difficulty 0
-      -- Find a nonce with a resulting block header hash prefix that is equal to the string of leading 0's needed to satisfy the difficulty target.
+  let target = fromIntegral . _target $ block_header
+      prefix    = BS.replicate target 0
+      -- Find a nonce with a resulting block header hash prefix that is equal to the string of leading 0's needed to satisfy the target target.
       -- TODO: Using fromJust is probably a bad idea here. Maybe use an error monad or something.
-      (nonce, _) = fromJust . find ((==) prefix . snd) . blockHashPrefixes block_header $ difficulty
+      (nonce, _) = fromJust . find ((==) prefix . snd) . blockHashPrefixes block_header $ target
   in block_header { _nonce = nonce }

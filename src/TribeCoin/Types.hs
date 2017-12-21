@@ -3,7 +3,7 @@ module TribeCoin.Types
     ( BlockHash (..)
     , Timestamp (..)
     , TimestampDiff (..)
-    , Difficulty (..)
+    , Target (..)
     , Nonce (..)
     , BlockHeader (..)
     , Block (..)
@@ -86,9 +86,10 @@ data TimestampDiff = TimestampDiff NominalDiffTime
 -- ^ Is dynamically adjusted.
 -- TODO: I might have this wrong. Target is the number below which a block header's hash should be.
 -- I might need to change this representation.
-newtype Difficulty = Difficulty Word32
+newtype Target = Target Word32
       deriving (Show, Integral, Real, Enum, Num, Ord, Eq, Generic)
-instance Serialize Difficulty
+
+instance Serialize Target
 
 newtype Nonce = Nonce Word32
       deriving (Show, Enum, Generic)
@@ -96,7 +97,8 @@ instance Serialize Nonce
 
 data BlockHeader = BlockHeader
   { _previousBlockHash :: BlockHash
-  , _difficulty :: Difficulty
+  , _merkleRootHash :: ()
+  , _target :: Target
   , _timestamp :: Timestamp
   , _nonce :: Nonce
   } deriving (Show, Generic)
