@@ -102,7 +102,14 @@ data BlockHeader = BlockHeader
   , _timestamp :: Timestamp
   , _nonce :: Nonce
   } deriving (Show, Generic)
+
 instance Serialize BlockHeader
+
+data Block = Block
+  { _blockHeader :: BlockHeader
+  , _coinbase :: Transaction
+  , _transactions :: [Transaction]
+  } deriving (Show)
 
 -----------------------------------------------------------------------------------------
 -- Transaction related types.
@@ -274,9 +281,3 @@ data Transaction =
       { _cbInputs :: CbIn
       , _cbOutputs :: TxOut
       } deriving (Show)
-
-data Block = Block
-  { _blockHeader :: BlockHeader
-  , _transactions :: [Transaction]
-  } deriving (Show)
-
