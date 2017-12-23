@@ -276,15 +276,13 @@ data TxIn = TxIn
   , _sigScript :: SigScript -- ^ Proof of ownership over the coins in |_prevOutput|.
   } deriving (Show)
 
-data CbIn = CbIn
-  deriving (Show)
-
 data Transaction =
     Transaction
       { _inputs :: [TxIn]
       , _outputs :: [TxOut]
       }
+  -- | A coinbase transaction has no inputs and awards newly minted coin as its only output.
   | CoinbaseTransaction 
-      { _cbInputs :: CbIn
-      , _cbOutputs :: TxOut
+      { _cbOutputs :: TxOut -- ^ The output of the coinbase transaction containing the
+                            -- ^ newly minted awarded to the miner of the block.
       } deriving (Show)
