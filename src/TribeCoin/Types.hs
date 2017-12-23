@@ -95,9 +95,16 @@ newtype Nonce = Nonce Word32
       deriving (Show, Enum, Generic)
 instance Serialize Nonce
 
+newtype MerkleHash = MerkleHash (Digest SHA256)
+    deriving (Show)
+
+instance Serialize MerkleHash where
+  put (MerkleHash digest) = putDigest digest
+  get = MerkleHash <$> getDigest 256 "Invalid MerkleHash"
+
 data BlockHeader = BlockHeader
   { _previousBlockHash :: BlockHash
-  , _merkleRootHash :: ()
+  , _merkleRootHash :: MerkleHash
   , _target :: Target
   , _timestamp :: Timestamp
   , _nonce :: Nonce
