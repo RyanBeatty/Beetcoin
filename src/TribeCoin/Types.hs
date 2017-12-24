@@ -15,6 +15,8 @@ module TribeCoin.Types
     ) where
 
 import Control.Monad.Fail as MF (fail)
+import Control.Monad.State (StateT (..))
+import Control.Monad.State.Class (MonadState)
 import qualified Crypto.Secp256k1 as ECC 
   ( PubKey, Sig, exportPubKey
   , importPubKey, importSig, exportSig
@@ -24,6 +26,7 @@ import Crypto.PubKey.ECC.ECDSA (PublicKey)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append, length)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
+import qualified Data.HashMap.Strict as HM (HashMap)
 import Data.Serialize
   ( Serialize, Get, Putter, Put, put, get, encode
   , runPut, runGet, putByteString, remaining, getByteString
@@ -118,10 +121,19 @@ data Block = Block
   , _transactions :: [Transaction]
   } deriving (Show)
 
+newtype BlockMap = BlockMap (HM.HashMap BlockHash Block)
+  deriving (Show)
+
+newtype TxMap = TxMap (HM.HashMap Outpoint Transaction)
+  deriving (Show)
+
 data ChainState = ChainState
-  { _blocks :: ()
-  , _txSet :: ()
+  { _blocks :: BlockMap
+  , _txSet :: TxMap
   } deriving (Show)
+
+newtype ChainStateT m a = ChainStateT (StateT ChainState m a)
+  deriving (Functor, Applicative, Monad, MonadState ChainState)
 
 -----------------------------------------------------------------------------------------
 -- Transaction related types.

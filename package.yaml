@@ -27,9 +27,11 @@ dependencies:
 - cereal
 - cryptonite
 - memory
+- mtl
 - secp256k1
 - time
 - unix-time
+- unordered-containers
 
 library:
   source-dirs: src
