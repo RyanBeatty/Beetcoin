@@ -132,7 +132,7 @@ data ChainState = ChainState
   , _txSet :: TxMap
   } deriving (Show)
 
-newtype ChainStateT m a = ChainStateT (StateT ChainState m a)
+newtype ChainT m a = ChainT (StateT ChainState m a)
   deriving (Functor, Applicative, Monad, MonadState ChainState)
 
 -----------------------------------------------------------------------------------------
