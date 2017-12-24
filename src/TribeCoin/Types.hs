@@ -118,8 +118,8 @@ data Block = Block
   , _transactions :: [Transaction]
   } deriving (Show)
 
-data BlockChainState = BlockChainState
-  { _blockChain :: ()
+data ChainState = ChainState
+  { _blocks :: ()
   , _txSet :: ()
   } deriving (Show)
 
