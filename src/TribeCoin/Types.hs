@@ -282,6 +282,8 @@ instance Serialize Sig where
       Nothing  -> MF.fail "Invalid DER encoded Signature."
       Just sig -> return . Sig $ sig
 
+-- | Represents the signed message used in signature scripts. Created by signing all of
+-- the transaction outputs.
 newtype SigMsg = SigMsg { _unSigMsg :: ECC.Msg }
   deriving (Show)
 
