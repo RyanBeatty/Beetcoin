@@ -14,6 +14,8 @@ module TribeCoin.Types
     , TribeCoinAddress (..)
     , ChainState (..)
     , ChainT (..)
+    , TxMap (..)
+    , Transaction (..)
     ) where
 
 import Control.Monad.Fail as MF (fail)
