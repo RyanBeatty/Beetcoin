@@ -17,6 +17,8 @@ module TribeCoin.Types
     , TxMap (..)
     , Transaction (..)
     , SigScript (..)
+    , SigMsg (..)
+    , PubKey (..)
     ) where
 
 import Control.Monad.Fail as MF (fail)
@@ -25,9 +27,9 @@ import Control.Monad.State.Class (MonadState)
 import qualified Crypto.Secp256k1 as ECC 
   ( PubKey, Sig, exportPubKey
   , importPubKey, importSig, exportSig
+  , Msg
   )
 import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
-import Crypto.PubKey.ECC.ECDSA (PublicKey)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append, length)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
@@ -250,7 +252,7 @@ data Outpoint = Outpoint
 instance Serialize Outpoint
 
 -- | Represents a public key used in ECDSA with curve secp256k1.
-newtype PubKey = PubKey ECC.PubKey
+newtype PubKey = PubKey { _unPubKey :: ECC.PubKey }
   deriving (Show)
 
 -- TODO: Support serializing to/from compressed format.
@@ -278,6 +280,9 @@ instance Serialize Sig where
     case ECC.importSig bytes of
       Nothing  -> MF.fail "Invalid DER encoded Signature."
       Just sig -> return . Sig $ sig
+
+newtype SigMsg = SigMsg ECC.Msg
+  deriving (Show)
 
 -- | Represents data needed to claim ownership over coins in a specific output.
 data SigScript = SigScript
