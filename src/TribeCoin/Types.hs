@@ -47,7 +47,7 @@ import GHC.Generics (Generic)
 import Numeric (showHex)
 
 -- ^ The sha256 hash of a block header.
-newtype BlockHash = BlockHash (Digest SHA256)
+newtype BlockHash = BlockHash { _unBlockHash :: (Digest SHA256) }
       deriving (Show, Eq)
 
 -- | Utility function for serializing a Digest.
@@ -77,7 +77,7 @@ instance Serialize BlockHash where
 -----------------------------------------------------------------------------------------
 
 -- | A timestamp is the amount of seconds since the posix epoch.
-newtype Timestamp = Timestamp POSIXTime
+newtype Timestamp = Timestamp { _unTimestamp :: POSIXTime }
       deriving (Show, Eq, Ord, Num, Fractional, Real)
 
 instance Serialize Timestamp where
@@ -96,16 +96,16 @@ data TimestampDiff = TimestampDiff NominalDiffTime
 -- ^ Is dynamically adjusted.
 -- TODO: I might have this wrong. Target is the number below which a block header's hash should be.
 -- I might need to change this representation.
-newtype Target = Target Word32
+newtype Target = Target { _unTarget :: Word32 }
       deriving (Show, Integral, Real, Enum, Num, Ord, Eq, Generic)
 
 instance Serialize Target
 
-newtype Nonce = Nonce Word32
+newtype Nonce = Nonce { _unNonce :: Word32 }
       deriving (Show, Enum, Generic)
 instance Serialize Nonce
 
-newtype MerkleHash = MerkleHash (Digest SHA256)
+newtype MerkleHash = MerkleHash { _unMerkleHash :: Digest SHA256 }
     deriving (Show)
 
 instance Serialize MerkleHash where
@@ -128,7 +128,7 @@ data Block = Block
   , _transactions :: [Transaction]
   } deriving (Show)
 
-newtype BlockMap = BlockMap (HM.HashMap BlockHash Block)
+newtype BlockMap = BlockMap { _unBlockMap :: HM.HashMap BlockHash Block }
   deriving (Show)
 
 data ChainState = ChainState
@@ -136,7 +136,7 @@ data ChainState = ChainState
   , _txSet :: TxMap
   } deriving (Show)
 
-newtype ChainT m a = ChainT (StateT ChainState m a)
+newtype ChainT m a = ChainT { _unChainT :: StateT ChainState m a }
   deriving (Functor, Applicative, Monad, MonadState ChainState)
 
 -----------------------------------------------------------------------------------------
@@ -147,7 +147,7 @@ newtype ChainT m a = ChainT (StateT ChainState m a)
 -- buffers or Apache Thrift?
 
 -- | The amount of tribe coin being transferred in a transaction output.
-newtype Amount = Amount Word64
+newtype Amount = Amount { _unAmount :: Word64 }
   deriving (Show, Eq, Generic)
 
 instance Serialize Amount
@@ -155,7 +155,7 @@ instance Serialize Amount
 -- | The checksum used to verify a public key hash has not been altered. Obtained by
 -- taking the first 4 bytes of an address version + public key hash after furthering
 -- hashing it twice with sha256.
-newtype AddressChecksum = AddressChecksum Word32
+newtype AddressChecksum = AddressChecksum { _unAddressChecksum :: Word32 }
   deriving (Show, Eq, Generic)
 
 instance Serialize AddressChecksum
@@ -167,7 +167,7 @@ data TXVersion = TXVersion
 
 -- | Represents the hash of a public key. Obtained by hashing the public key of a user
 -- first with sha256 and then with ripemd160.
-newtype PubKeyHash = PubKeyHash (Digest RIPEMD160)
+newtype PubKeyHash = PubKeyHash { _unPubKeyHash :: Digest RIPEMD160 }
   deriving (Show, Eq)
 
 instance Serialize PubKeyHash where
@@ -176,7 +176,7 @@ instance Serialize PubKeyHash where
   get = PubKeyHash <$> getDigest 20 "Invalid PubKeyHash"
 
 -- ^ The prefix that is prepended to the payment script (e.g. tribe coin address).
-newtype Prefix = Prefix Word8
+newtype Prefix = Prefix { _unPrefix :: Word8 }
   deriving (Show, Generic)
 
 instance Serialize Prefix
@@ -229,7 +229,7 @@ instance Serialize TxOut
 
 -- | Represents identifier of an unspent transaction in a transaction input.
 -- Created by double sha256 hashing the transaction.
-newtype TxId = TxId (Digest SHA256)
+newtype TxId = TxId { _unTxId :: Digest SHA256 }
   deriving (Show, Eq)
 
 instance Serialize TxId where
@@ -238,15 +238,15 @@ instance Serialize TxId where
   get = TxId <$> getDigest 256 "Invalid TxId"
 
 -- | Represents the index of a specific unspent transaction in a full transaction set.
-newtype TXIndex = TXIndex Word32
+newtype TxIndex = TxIndex { _unTxIndex :: Word32 }
   deriving (Show, Eq, Generic)
 
-instance Serialize TXIndex
+instance Serialize TxIndex
 
 -- | Represents a specific output of a specific transaction.
 data Outpoint = Outpoint
   { _txId :: TxId -- ^ The id of the transaction.
-  , _txIndex :: TXIndex -- ^ The output index within the transaction.
+  , _txIndex :: TxIndex -- ^ The output index within the transaction.
   } deriving (Show, Eq, Generic)
 
 instance Serialize Outpoint
@@ -268,7 +268,7 @@ instance Serialize PubKey where
 
 -- | Represents a ECDSA signature using the secp256k1 curve. Serialized as a DER
 -- encoded bytestring.
-newtype Sig = Sig ECC.Sig
+newtype Sig = Sig { _unSig :: ECC.Sig }
   deriving (Show)
 
 instance Serialize Sig where
@@ -281,7 +281,7 @@ instance Serialize Sig where
       Nothing  -> MF.fail "Invalid DER encoded Signature."
       Just sig -> return . Sig $ sig
 
-newtype SigMsg = SigMsg ECC.Msg
+newtype SigMsg = SigMsg { _unSigMsg :: ECC.Msg }
   deriving (Show)
 
 -- | Represents data needed to claim ownership over coins in a specific output.
@@ -311,5 +311,5 @@ data Transaction =
                             -- ^ newly minted awarded to the miner of the block.
       } deriving (Show)
 
-newtype TxMap = TxMap (HM.HashMap TxId Transaction)
+newtype TxMap = TxMap { _unTxMap :: HM.HashMap TxId Transaction }
   deriving (Show)
