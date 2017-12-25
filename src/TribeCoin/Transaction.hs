@@ -15,8 +15,13 @@ verifyTx tx tx_map = undefined
 
 verifySigScript :: SigScript -> PubKeyHash -> SigMsg -> Bool
 verifySigScript script hash msg =
-  -- Hash the public key by first hashing with sha256 and then with ripemd160.
-  let hash' = PubKeyHash . ripemd160 . sha256 $ (encode . _pubKey $ script :: BS.ByteString)
+  let is_valid_pubkey = verifyPubKey (_pubKey script) hash
       is_valid_sig = ECC.verifySig (_unPubKey . _pubKey $ script) (_unSig . _sig $ script) (_unSigMsg msg) 
-  in hash' == hash && is_valid_sig
+  in is_valid_pubkey && is_valid_sig
+
+verifyPubKey :: PubKey -> PubKeyHash -> Bool
+verifyPubKey pubkey hash =
+  -- Hash the public key by first hashing with sha256 and then with ripemd160.
+  let hash' = PubKeyHash . ripemd160 . sha256 $ (encode pubkey :: BS.ByteString)
+  in hash' == hash
 
