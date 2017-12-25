@@ -188,6 +188,7 @@ addressPrefix = Prefix 0x00
 
 -- | A tribe coin address represents a destination which coin can be sent to.
 -- Should be 33 bytes long when serialized.
+-- TODO: Remove address checksum. I don't think I need it.
 data TribeCoinAddress = TribeCoinAddress
   { _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
   , _checksum :: AddressChecksum -- ^ checksum for the version + public key hash.
