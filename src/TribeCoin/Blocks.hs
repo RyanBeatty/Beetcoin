@@ -2,8 +2,11 @@ module TribeCoin.Blocks
     ( mineBlock
     ) where
 
-import TribeCoin.Types (Block (..), BlockHeader (..), BlockHash (..), Nonce (..))
+import TribeCoin.Types
+  ( Block (..), BlockHeader (..), BlockHash (..), Nonce (..)
+  , ChainT (..))
 
+import Control.Monad.IO.Class (MonadIO)
 import Data.ByteString as BS (ByteString, take, replicate)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
@@ -47,3 +50,11 @@ mineBlock block_header =
       -- TODO: Using fromJust is probably a bad idea here. Maybe use an error monad or something.
       (nonce, _) = fromJust . find ((==) prefix . snd) . blockHashPrefixes block_header $ target
   in block_header { _nonce = nonce }
+
+validateBlock :: (Monad m) => Block -> ChainT m Bool
+validateBlock block =
+  let block_header = _blockHeader block
+  in validateBlockHeader block_header
+
+validateBlockHeader :: (Monad m) => BlockHeader -> ChainT m Bool
+validateBlockHeader block_header = undefined

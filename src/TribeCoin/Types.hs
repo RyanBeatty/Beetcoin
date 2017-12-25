@@ -12,6 +12,8 @@ module TribeCoin.Types
     , TXVersion (..)
     , PubKeyHash (..)
     , TribeCoinAddress (..)
+    , ChainState (..)
+    , ChainT (..)
     ) where
 
 import Control.Monad.Fail as MF (fail)
@@ -122,9 +124,6 @@ data Block = Block
   } deriving (Show)
 
 newtype BlockMap = BlockMap (HM.HashMap BlockHash Block)
-  deriving (Show)
-
-newtype TxMap = TxMap (HM.HashMap Outpoint Transaction)
   deriving (Show)
 
 data ChainState = ChainState
@@ -303,3 +302,6 @@ data Transaction =
       { _cbOutputs :: TxOut -- ^ The output of the coinbase transaction containing the
                             -- ^ newly minted awarded to the miner of the block.
       } deriving (Show)
+
+newtype TxMap = TxMap (HM.HashMap Outpoint Transaction)
+  deriving (Show)
