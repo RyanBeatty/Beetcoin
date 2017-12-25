@@ -18,6 +18,7 @@ module TribeCoin.Types
     , Transaction (..)
     , SigScript (..)
     , SigMsg (..)
+    , Sig (..)
     , PubKey (..)
     ) where
 
