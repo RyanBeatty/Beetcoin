@@ -303,5 +303,5 @@ data Transaction =
                             -- ^ newly minted awarded to the miner of the block.
       } deriving (Show)
 
-newtype TxMap = TxMap (HM.HashMap Outpoint Transaction)
+newtype TxMap = TxMap (HM.HashMap TxId Transaction)
   deriving (Show)
