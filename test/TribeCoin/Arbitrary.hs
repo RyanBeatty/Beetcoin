@@ -1,15 +1,25 @@
 module TribeCoin.Arbitrary where
 
-import TribeCoin.Types (TribeCoinAddress (..), PubKeyHash (..), AddressChecksum (..))
+import TribeCoin.Types (TribeCoinAddress (..), PubKey (..), PubKeyHash (..), AddressChecksum (..))
 
 import Crypto.Hash (SHA256 (..), digestFromByteString, hashWith)
+import Crypto.Secp256k1 (importPubKey, secKey, derivePubKey)
 import Data.ByteArray (convert)
-import qualified Data.ByteString as BS (pack, cons, take)
+import qualified Data.ByteString as BS (ByteString, pack, cons, take)
 import Data.Either (either)
 import Data.Maybe (fromJust)
 import Data.Serialize (encode, decode)
 import Data.Word (Word8)
 import Test.Tasty.QuickCheck (Arbitrary, Gen, arbitrary, vector)
+
+-- | Represents a random, valid public key.
+newtype RandomPubKey = RandomPubKey { _unRandomPubKey :: PubKey }
+  deriving (Show)
+
+instance Arbitrary RandomPubKey where
+  -- | Generate a random public key by first generating a random private key and then deriving a public
+  -- key from the private key.
+  arbitrary = RandomPubKey . PubKey . derivePubKey . fromJust . secKey . BS.pack <$> vector 32
 
 -- | A valid random public key hash.
 newtype RandomPubKeyHash = RandomPubKeyHash { _unRandomPubKeyHash :: PubKeyHash }
