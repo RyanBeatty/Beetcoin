@@ -45,6 +45,8 @@ rawPubKeyHash = BS.pack
 rawAddressChecksum :: BS.ByteString
 rawAddressChecksum = encode (0xD61967F6 :: Word32)
 
+-- | Raw version byte for an address. Taken from
+-- https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
 rawVersionByte :: BS.ByteString
 rawVersionByte = encode (0x00 :: Word8)
 
