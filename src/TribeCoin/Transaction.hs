@@ -1,5 +1,5 @@
 module TribeCoin.Transaction 
-  (
+  ( verifyPubKey
   ) where
 
 import TribeCoin.Types (TxMap (..), Transaction (..), PubKeyHash (..), SigScript (..), SigMsg (..), PubKey (..), Sig (..))
