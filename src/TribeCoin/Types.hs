@@ -22,6 +22,8 @@ module TribeCoin.Types
     , PubKey (..)
     , TxOut (..)
     , TxId (..)
+    , TxIndex (..)
+    , Outpoint (..)
     ) where
 
 import Control.Monad.Fail as MF (fail)
@@ -53,28 +55,6 @@ import Numeric (showHex)
 newtype BlockHash = BlockHash { _unBlockHash :: (Digest SHA256) }
       deriving (Show, Eq)
 
--- | Utility function for serializing a Digest.
-putDigest :: HashAlgorithm a
-          => Digest a -- ^ The digest to serialize.
-          -> Put
-putDigest = putByteString . convert
-
--- | Utility function for deserializing a Digest.
-getDigest :: HashAlgorithm a
-          => Int -- ^ The amount of bytes to read from the input state.
-          -> String -- ^ Error message to print on failure.
-          -> Get (Digest a)
-getDigest num error_msg = do
-  byte_string <- getByteString num
-  case digestFromByteString byte_string of
-    Nothing       -> MF.fail error_msg
-    (Just digest) -> return digest
-
-instance Serialize BlockHash where
-  put (BlockHash digest) = putDigest digest 
-  
-  get = BlockHash <$> getDigest 32 "Invalid BlockHash"
-
 -----------------------------------------------------------------------------------------
 -- Time related types.
 -----------------------------------------------------------------------------------------
@@ -82,13 +62,6 @@ instance Serialize BlockHash where
 -- | A timestamp is the amount of seconds since the posix epoch.
 newtype Timestamp = Timestamp { _unTimestamp :: POSIXTime }
       deriving (Show, Eq, Ord, Num, Fractional, Real)
-
-instance Serialize Timestamp where
-  put (Timestamp time) = put . toRational $ time
-  
-  get = do
-    rational <- get :: (Get Rational)
-    return . Timestamp . fromRational $ rational
 
 -- | A timestamp diff represents the difference in time between two timestamps.
 data TimestampDiff = TimestampDiff NominalDiffTime
@@ -102,18 +75,11 @@ data TimestampDiff = TimestampDiff NominalDiffTime
 newtype Target = Target { _unTarget :: Word32 }
       deriving (Show, Integral, Real, Enum, Num, Ord, Eq, Generic)
 
-instance Serialize Target
-
 newtype Nonce = Nonce { _unNonce :: Word32 }
       deriving (Show, Enum, Generic)
-instance Serialize Nonce
 
 newtype MerkleHash = MerkleHash { _unMerkleHash :: Digest SHA256 }
     deriving (Show)
-
-instance Serialize MerkleHash where
-  put (MerkleHash digest) = putDigest digest
-  get = MerkleHash <$> getDigest 256 "Invalid MerkleHash"
 
 data BlockHeader = BlockHeader
   { _previousBlockHash :: BlockHash
@@ -122,8 +88,6 @@ data BlockHeader = BlockHeader
   , _timestamp :: Timestamp
   , _nonce :: Nonce
   } deriving (Show, Generic)
-
-instance Serialize BlockHeader
 
 data Block = Block
   { _blockHeader :: BlockHeader
@@ -153,15 +117,11 @@ newtype ChainT m a = ChainT { _unChainT :: StateT ChainState m a }
 newtype Amount = Amount { _unAmount :: Word64 }
   deriving (Show, Eq, Generic)
 
-instance Serialize Amount
-
 -- | The checksum used to verify a public key hash has not been altered. Obtained by
 -- taking the first 4 bytes of an address version + public key hash after furthering
 -- hashing it twice with sha256.
 newtype AddressChecksum = AddressChecksum { _unAddressChecksum :: Word32 }
   deriving (Show, Eq, Generic)
-
-instance Serialize AddressChecksum
 
 -- | The version of validation rules a transaction should be validated against.
 -- This might not be necessary in the long term, but its nice to have just in case.
@@ -173,16 +133,9 @@ data TXVersion = TXVersion
 newtype PubKeyHash = PubKeyHash { _unPubKeyHash :: Digest RIPEMD160 }
   deriving (Show, Eq)
 
-instance Serialize PubKeyHash where
-  put (PubKeyHash digest) = putDigest digest
-  
-  get = PubKeyHash <$> getDigest 20 "Invalid PubKeyHash"
-
 -- ^ The prefix that is prepended to the payment script (e.g. tribe coin address).
 newtype Prefix = Prefix { _unPrefix :: Word8 }
   deriving (Show, Generic)
-
-instance Serialize Prefix
 
 -- | Version byte prefix for tribe coin addresses.
 addressPrefix :: Prefix
@@ -195,6 +148,122 @@ data TribeCoinAddress = TribeCoinAddress
   { _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
   , _checksum :: AddressChecksum -- ^ checksum for the version + public key hash.
   } deriving (Show, Eq)
+
+-- | Represents a transaction output.
+data TxOut = TxOut
+  { _amount :: Amount -- ^ The amount of coin in this output this can be spent.
+  , _receiverAddress :: TribeCoinAddress -- ^ The recipient of the transaction.
+  } deriving (Show, Generic)
+  
+-- | Represents identifier of an unspent transaction in a transaction input.
+-- Created by double sha256 hashing the transaction.
+newtype TxId = TxId { _unTxId :: Digest SHA256 }
+  deriving (Show, Eq)
+
+-- | Represents the index of a specific unspent transaction in a full transaction set.
+newtype TxIndex = TxIndex { _unTxIndex :: Word32 }
+  deriving (Show, Eq, Generic)
+
+-- | Represents a specific output of a specific transaction.
+data Outpoint = Outpoint
+  { _txId :: TxId -- ^ The id of the transaction.
+  , _txIndex :: TxIndex -- ^ The output index within the transaction.
+  } deriving (Show, Eq, Generic)
+
+-- | Represents a public key used in ECDSA with curve secp256k1.
+newtype PubKey = PubKey { _unPubKey :: ECC.PubKey }
+  deriving (Show)
+
+-- | Represents a ECDSA signature using the secp256k1 curve. Serialized as a DER
+-- encoded bytestring.
+newtype Sig = Sig { _unSig :: ECC.Sig }
+  deriving (Show)
+
+-- | Represents the signed message used in signature scripts. Created by signing all of
+-- the transaction outputs.
+newtype SigMsg = SigMsg { _unSigMsg :: ECC.Msg }
+  deriving (Show)
+
+-- | Represents data needed to claim ownership over coins in a specific output.
+data SigScript = SigScript
+  { _pubKey :: PubKey -- ^ The public key of the owner.
+  , _sig :: Sig -- ^ The signature used to prove ownership of the private key corresponding to
+                -- ^ the public key.
+  } deriving (Show, Generic)
+
+-- | Represents an input to a transaction.
+data TxIn = TxIn
+  { _prevOutput :: Outpoint -- ^ A specific output of a transaction that will be spent.
+  , _sigScript :: SigScript -- ^ Proof of ownership over the coins in |_prevOutput|.
+  } deriving (Show)
+
+data Transaction =
+    Transaction
+      { _inputs :: [TxIn]
+      , _outputs :: [TxOut]
+      }
+  -- | A coinbase transaction has no inputs and awards newly minted coin as its only output.
+  | CoinbaseTransaction 
+      { _cbOutputs :: TxOut -- ^ The output of the coinbase transaction containing the
+                            -- ^ newly minted awarded to the miner of the block.
+      } deriving (Show)
+
+newtype TxMap = TxMap { _unTxMap :: HM.HashMap TxId Transaction }
+  deriving (Show)
+
+-----------------------------------------------------------------------------------------
+-- Typeclass instances.
+-----------------------------------------------------------------------------------------
+
+-- | Utility function for serializing a Digest.
+putDigest :: HashAlgorithm a
+          => Digest a -- ^ The digest to serialize.
+          -> Put
+putDigest = putByteString . convert
+
+-- | Utility function for deserializing a Digest.
+getDigest :: HashAlgorithm a
+          => Int -- ^ The amount of bytes to read from the input state.
+          -> String -- ^ Error message to print on failure.
+          -> Get (Digest a)
+getDigest num error_msg = do
+  byte_string <- getByteString num
+  case digestFromByteString byte_string of
+    Nothing       -> MF.fail error_msg
+    (Just digest) -> return digest
+
+instance Serialize Target
+instance Serialize Nonce
+instance Serialize BlockHeader
+instance Serialize Amount
+instance Serialize AddressChecksum
+instance Serialize Prefix
+instance Serialize TxOut
+instance Serialize TxIndex
+instance Serialize Outpoint
+-- TODO: I think this has bugs because both PubKey and Sig use the remaining function.
+instance Serialize SigScript
+
+instance Serialize BlockHash where
+  put (BlockHash digest) = putDigest digest 
+  
+  get = BlockHash <$> getDigest 32 "Invalid BlockHash"
+
+instance Serialize Timestamp where
+  put (Timestamp time) = put . toRational $ time
+  
+  get = do
+    rational <- get :: (Get Rational)
+    return . Timestamp . fromRational $ rational
+
+instance Serialize MerkleHash where
+  put (MerkleHash digest) = putDigest digest
+  get = MerkleHash <$> getDigest 256 "Invalid MerkleHash"
+
+instance Serialize PubKeyHash where
+  put (PubKeyHash digest) = putDigest digest
+  
+  get = PubKeyHash <$> getDigest 20 "Invalid PubKeyHash"
 
 instance Serialize TribeCoinAddress where
   -- | A tribe coin address is serialized by concatentating a version number, the public
@@ -223,41 +292,10 @@ instance Serialize TribeCoinAddress where
           Left error    -> MF.fail error
           Right address -> return address
 
--- | Represents a transaction output.
-data TxOut = TxOut
-  { _amount :: Amount -- ^ The amount of coin in this output this can be spent.
-  , _receiverAddress :: TribeCoinAddress -- ^ The recipient of the transaction.
-  } deriving (Show, Generic)
-  
-instance Serialize TxOut
-
--- | Represents identifier of an unspent transaction in a transaction input.
--- Created by double sha256 hashing the transaction.
-newtype TxId = TxId { _unTxId :: Digest SHA256 }
-  deriving (Show, Eq)
-
 instance Serialize TxId where
   put (TxId digest) = putDigest digest
   
   get = TxId <$> getDigest 256 "Invalid TxId"
-
--- | Represents the index of a specific unspent transaction in a full transaction set.
-newtype TxIndex = TxIndex { _unTxIndex :: Word32 }
-  deriving (Show, Eq, Generic)
-
-instance Serialize TxIndex
-
--- | Represents a specific output of a specific transaction.
-data Outpoint = Outpoint
-  { _txId :: TxId -- ^ The id of the transaction.
-  , _txIndex :: TxIndex -- ^ The output index within the transaction.
-  } deriving (Show, Eq, Generic)
-
-instance Serialize Outpoint
-
--- | Represents a public key used in ECDSA with curve secp256k1.
-newtype PubKey = PubKey { _unPubKey :: ECC.PubKey }
-  deriving (Show)
 
 -- TODO: Support serializing to/from compressed format.
 instance Serialize PubKey where
@@ -270,11 +308,6 @@ instance Serialize PubKey where
       Nothing     -> MF.fail "Invalid DER encoded PubKey."
       Just pubkey -> return . PubKey $ pubkey
 
--- | Represents a ECDSA signature using the secp256k1 curve. Serialized as a DER
--- encoded bytestring.
-newtype Sig = Sig { _unSig :: ECC.Sig }
-  deriving (Show)
-
 instance Serialize Sig where
   put (Sig sig) = putByteString . ECC.exportSig $ sig
 
@@ -284,38 +317,3 @@ instance Serialize Sig where
     case ECC.importSig bytes of
       Nothing  -> MF.fail "Invalid DER encoded Signature."
       Just sig -> return . Sig $ sig
-
--- | Represents the signed message used in signature scripts. Created by signing all of
--- the transaction outputs.
-newtype SigMsg = SigMsg { _unSigMsg :: ECC.Msg }
-  deriving (Show)
-
--- | Represents data needed to claim ownership over coins in a specific output.
-data SigScript = SigScript
-  { _pubKey :: PubKey -- ^ The public key of the owner.
-  , _sig :: Sig -- ^ The signature used to prove ownership of the private key corresponding to
-                -- ^ the public key.
-  } deriving (Show, Generic)
-
--- TODO: I think this has bugs because both PubKey and Sig use the remaining function.
-instance Serialize SigScript where
-
--- | Represents an input to a transaction.
-data TxIn = TxIn
-  { _prevOutput :: Outpoint -- ^ A specific output of a transaction that will be spent.
-  , _sigScript :: SigScript -- ^ Proof of ownership over the coins in |_prevOutput|.
-  } deriving (Show)
-
-data Transaction =
-    Transaction
-      { _inputs :: [TxIn]
-      , _outputs :: [TxOut]
-      }
-  -- | A coinbase transaction has no inputs and awards newly minted coin as its only output.
-  | CoinbaseTransaction 
-      { _cbOutputs :: TxOut -- ^ The output of the coinbase transaction containing the
-                            -- ^ newly minted awarded to the miner of the block.
-      } deriving (Show)
-
-newtype TxMap = TxMap { _unTxMap :: HM.HashMap TxId Transaction }
-  deriving (Show)

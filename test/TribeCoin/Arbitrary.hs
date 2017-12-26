@@ -1,8 +1,6 @@
 module TribeCoin.Arbitrary where
 
-import TribeCoin.Types 
-  ( TribeCoinAddress (..), PubKey (..), PubKeyHash (..), AddressChecksum (..)
-  , TxOut (..), Amount (..), TxId (..))
+import TribeCoin.Types
 
 import Crypto.Hash (SHA256 (..), digestFromByteString, hashWith)
 import Crypto.Secp256k1 (importPubKey, secKey, derivePubKey)
@@ -32,6 +30,9 @@ newtype RandomTxOut = RandomTxOut { _unRandomTxOut :: TxOut }
 
 -- | A valid random transaction id.
 newtype RandomTxId = RandomTxId { _unRandomTxId :: TxId }
+  deriving (Show)
+
+newtype RandomOutpoint = RandomOutpoint { _unRandomOutpoint :: Outpoint }
   deriving (Show)
 
 instance Arbitrary RandomPubKey where
@@ -66,3 +67,9 @@ instance Arbitrary RandomTxOut where
 instance Arbitrary RandomTxId where
   -- | Generate a random transaction id by generating a random sha256 hash.
   arbitrary = RandomTxId . TxId . fromJust . digestFromByteString . BS.pack <$> vector 32
+
+instance Arbitrary RandomOutpoint where
+  arbitrary = do
+    index <- TxIndex <$> arbitrary
+    txId  <- _unRandomTxId <$> arbitrary
+    return . RandomOutpoint $ Outpoint txId index
