@@ -20,6 +20,8 @@ module TribeCoin.Types
     , SigMsg (..)
     , Sig (..)
     , PubKey (..)
+    , TxOut (..)
+    , TxId (..)
     ) where
 
 import Control.Monad.Fail as MF (fail)
