@@ -31,17 +31,23 @@ spec_PrivKey = do
       HS.it "Decoding Works" $ do
         decode rawPrivKey `HS.shouldBe` Right parsedPrivKey
 
+      -- Verify that the lower bound for a private key is valid.
       HS.it "Decode Lower Bound" $ do
         decode (fromJust . i2ospOf 32 $ privKeyLowerBound) `HS.shouldBe` Right (mkPrivKey privKeyLowerBound)
 
+      -- Verify that less than the lower bound for a private key is invalid.
       HS.it "Decode Less Than Lower Bound" $ do
-        (decode (fromJust . i2ospOf 32 $ privKeyLowerBound - 1) :: Either String PrivKey) `HS.shouldBe` Left "Failed reading: Number for PrivKey is out of range!\nEmpty call stack\n"
-        
+        HS.shouldBe (decode . fromJust . i2ospOf 32 $ privKeyLowerBound - 1 :: Either String PrivKey)
+                    (Left "Failed reading: Number for PrivKey is out of range!\nEmpty call stack\n")
+       
+      -- Verify that the upper bound for a private key is valid.
       HS.it "Decode Upper Bound" $ do
         decode (fromJust . i2ospOf 32 $ privKeyUpperBound) `HS.shouldBe` Right (mkPrivKey privKeyUpperBound)
 
+      -- Verify that more than the upper bound for a private key is invalid.
       HS.it "Decode More Than Upper Bound" $ do
-        (decode (fromJust . i2ospOf 32 $ privKeyUpperBound + 1) :: Either String PrivKey) `HS.shouldBe` Left "Failed reading: Number for PrivKey is out of range!\nEmpty call stack\n"
+        HS.shouldBe (decode . fromJust . i2ospOf 32 $ privKeyUpperBound + 1 :: Either String PrivKey)
+                    (Left "Failed reading: Number for PrivKey is out of range!\nEmpty call stack\n")
         
 spec_PubKey :: HS.Spec
 spec_PubKey = do
