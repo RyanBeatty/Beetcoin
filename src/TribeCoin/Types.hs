@@ -20,6 +20,9 @@ module TribeCoin.Types
     , SigMsg (..)
     , Sig (..)
     , PrivKey (..)
+    , mkPrivKey
+    , privKeyLowerBound
+    , privKeyUpperBound
     , PubKey (..)
     , mkPubKey
     , TxOut (..)
@@ -177,15 +180,22 @@ secp256k1 :: CPET.Curve
 secp256k1 = CPET.getCurveByName CPET.SEC_p256k1
 
 newtype PrivKey = PrivKey { _unPrivKey :: ECC.PrivateKey }
-  deriving (Show)
+  deriving (Show, Eq)
 
 mkPrivKey :: ECC.PrivateNumber -> PrivKey
 mkPrivKey num = PrivKey $ ECC.PrivateKey secp256k1 num
+
+privKeyLowerBound :: Integer
+privKeyLowerBound = 0x01
+
+privKeyUpperBound :: Integer
+privKeyUpperBound = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140
 
 -- | Represents an ECC public key for use in ECDSA.
 newtype PubKey = PubKey { _unPubKey :: ECC.PublicKey }
   deriving (Show, Eq)
 
+-- TODO: Take 2 integers
 mkPubKey :: ECC.PublicPoint -> PubKey
 mkPubKey point = PubKey $ ECC.PublicKey secp256k1 point
 
@@ -313,12 +323,17 @@ instance Serialize TxId where
   
   get = TxId <$> getDigest 256 "Invalid TxId"
 
--- | A private key has a raw format of a 32 byte integer.
+-- | A private key has a raw format of a 32 byte integer between 0x01 and
+-- 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140.
 instance Serialize PrivKey where
   put (PrivKey (ECC.PrivateKey _ num)) = putByteString . CNS.i2osp $ num
 
-  -- TODO: Check for valid key range.
-  get = mkPrivKey <$> CNS.os2ip <$> getByteString 32
+  get = do
+    num <- CNS.os2ip <$> getByteString 32
+    if num < privKeyLowerBound || num > privKeyUpperBound then
+      MF.fail "Number for PrivKey is out of range!"
+    else
+      return $ mkPrivKey num
 
 -- | A public key has a raw format of 65 bytes. It starts with a header byte (0x04)
 -- and is followed by one 32 byte integer (X coord) and then another 32 byte

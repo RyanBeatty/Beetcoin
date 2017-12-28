@@ -28,4 +28,3 @@ verifyPubKey pubkey hash =
 -- | Verifies that a signature is valid given a public key and a message to sign.
 verifySig :: PubKey -> Sig -> SigMsg -> Bool
 verifySig pubkey sig msg = undefined -- ECC.verifySig (_unPubKey pubkey) (_unSig sig) (_unSigMsg msg)
-

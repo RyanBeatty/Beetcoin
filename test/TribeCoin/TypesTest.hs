@@ -4,12 +4,35 @@ import TribeCoin.Types
 import TribeCoin.TestUtils
 
 import Crypto.Hash (digestFromByteString)
+import Crypto.Number.Serialize (i2ospOf)
 import qualified Data.ByteString as BS (ByteString, pack, length)
 import Data.ByteString.Base58 (encodeBase58, bitcoinAlphabet)
 import Data.Maybe (fromJust)
 import Data.Serialize (encode, decode)
 import Data.Word (Word32)
 import qualified Test.Tasty.Hspec as HS
+
+
+spec_PrivKey :: HS.Spec
+spec_PrivKey = do
+  HS.describe "PrivKey Tests" $ do
+
+    HS.describe "Encoding Tests" $ do
+      -- Verify that an encoded private key is the same as its raw representation.
+      HS.it "Encoding Works" $ do
+        encode parsedPrivKey `HS.shouldBe` rawPrivKey
+
+      -- Verify that encoded private keys are 32 bytes long.
+      HS.it "Encoded Length" $ do
+        (BS.length . encode $ parsedPrivKey) `HS.shouldBe` 32
+    
+    HS.describe "Decoding Tests" $ do
+      -- Verify that a decoded raw private key is the same as its parsed representation.
+      HS.it "Decoding Works" $ do
+        decode rawPrivKey `HS.shouldBe` Right parsedPrivKey
+
+      HS.it "Decode Lower Bound" $ do
+        decode (fromJust . i2ospOf 32 $ privKeyLowerBound) `HS.shouldBe` Right (mkPrivKey privKeyLowerBound)
 
 spec_PubKey :: HS.Spec
 spec_PubKey = do

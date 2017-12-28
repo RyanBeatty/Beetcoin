@@ -4,7 +4,7 @@ module TribeCoin.TestUtils where
 import TribeCoin.Types
 
 import Crypto.Hash (digestFromByteString)
-import Crypto.PubKey.ECC.ECDSA (PublicKey (..))
+import Crypto.PubKey.ECC.ECDSA (PublicKey (..), PrivateKey (..))
 import Crypto.PubKey.ECC.Types (Point (..))
 import qualified Data.ByteString as BS (ByteString, pack, append)
 import Data.ByteString.Base58 (encodeBase58, bitcoinAlphabet)
@@ -15,8 +15,8 @@ import Data.Word (Word32, Word8)
 
 -- | Byte representation of a private key. Taken from
 -- https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
-rawPrivateKey :: BS.ByteString
-rawPrivateKey = BS.pack 
+rawPrivKey :: BS.ByteString
+rawPrivKey = BS.pack 
   [ 0x18, 0xE1, 0x4A, 0x7B, 0x6A, 0x30, 0x7F, 0x42, 0x6A, 0x94, 0xF8, 0x11, 0x47, 0x01, 0xE7, 0xC8
   , 0xE7, 0x74, 0xE7, 0xF9, 0xA4, 0x7E, 0x2C, 0x20, 0x35, 0xDB, 0x29, 0xA2, 0x06, 0x32, 0x17, 0x25
   ]
@@ -65,10 +65,13 @@ rawSig = BS.pack
 rawTribeCoinAddress :: BS.ByteString
 rawTribeCoinAddress = encodeBase58 bitcoinAlphabet $ rawVersionByte `BS.append` rawPubKeyHash `BS.append` rawAddressChecksum
 
+parsedPrivKey :: PrivKey
+parsedPrivKey = mkPrivKey 0x18E14A7B6A307F426A94F8114701E7C8E774E7F9A47E2C2035DB29A206321725
+
 -- | Parsed representation of a public key. Built from the x and y coords of the raw public key.
 parsedPubKey :: PubKey
-parsedPubKey = PubKey $ PublicKey secp256k1 (Point 0x50863AD64A87AE8A2FE83C1AF1A8403CB53F53E486D8511DAD8A04887E5B2352
-                                                   0x2CD470243453A299FA9E77237716103ABC11A1DF38855ED6F2EE187E9C582BA6)
+parsedPubKey = mkPubKey (Point 0x50863AD64A87AE8A2FE83C1AF1A8403CB53F53E486D8511DAD8A04887E5B2352
+                               0x2CD470243453A299FA9E77237716103ABC11A1DF38855ED6F2EE187E9C582BA6)
 
 parsedPubKeyHash :: PubKeyHash
 parsedPubKeyHash = PubKeyHash . fromJust . digestFromByteString $ rawPubKeyHash
