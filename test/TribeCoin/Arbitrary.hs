@@ -39,6 +39,7 @@ newtype RandomTxId = RandomTxId { _unRandomTxId :: TxId }
 newtype RandomOutpoint = RandomOutpoint { _unRandomOutpoint :: Outpoint }
   deriving (Show)
 
+
 instance Arbitrary RandomPrivKey where
   arbitrary = RandomPrivKey . either (error "Failed to parse generated PrivKey!") (id) . decode . BS.pack <$> vector 32
 
@@ -46,7 +47,6 @@ instance Arbitrary RandomPubKey where
   -- | Generate a random public key by first generating a random private key and then deriving a public
   -- key from the private key.
   arbitrary = RandomPubKey . mkPubKey . calculatePublic secp256k1 . private_d . _unPrivKey . _unRandomPrivKey <$> arbitrary
-  --arbitrary = RandomPubKey . PubKey . derivePubKey . fromJust . secKey . BS.pack <$> vector 32
 
 instance Arbitrary RandomPubKeyHash where
   arbitrary = do
