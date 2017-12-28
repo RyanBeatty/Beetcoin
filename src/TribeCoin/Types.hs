@@ -184,7 +184,7 @@ mkPrivKey num = PrivKey $ ECC.PrivateKey secp256k1 num
 
 -- | Represents an ECC public key for use in ECDSA.
 newtype PubKey = PubKey { _unPubKey :: ECC.PublicKey }
-  deriving (Show)
+  deriving (Show, Eq)
 
 mkPubKey :: ECC.PublicPoint -> PubKey
 mkPubKey point = PubKey $ ECC.PublicKey secp256k1 point

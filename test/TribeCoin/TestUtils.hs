@@ -1,9 +1,11 @@
 -- | Contains utility functions and definitions used throughout testing code.
 module TribeCoin.TestUtils where
 
-import TribeCoin.Types (PubKey (..), PubKeyHash (..), TribeCoinAddress (..))
+import TribeCoin.Types
 
 import Crypto.Hash (digestFromByteString)
+import Crypto.PubKey.ECC.ECDSA (PublicKey (..))
+import Crypto.PubKey.ECC.Types (Point (..))
 import qualified Data.ByteString as BS (ByteString, pack, append)
 import Data.ByteString.Base58 (encodeBase58, bitcoinAlphabet)
 import Data.Either (either)
@@ -63,11 +65,14 @@ rawSig = BS.pack
 rawTribeCoinAddress :: BS.ByteString
 rawTribeCoinAddress = encodeBase58 bitcoinAlphabet $ rawVersionByte `BS.append` rawPubKeyHash `BS.append` rawAddressChecksum
 
+-- | Parsed representation of a public key. Built from the x and y coords of the raw public key.
 parsedPubKey :: PubKey
-parsedPubKey = either (error "Failed to parse raw PubKey!") (id) . decode $ rawPubKey
+parsedPubKey = PubKey $ PublicKey secp256k1 (Point 0x50863AD64A87AE8A2FE83C1AF1A8403CB53F53E486D8511DAD8A04887E5B2352
+                                                   0x2CD470243453A299FA9E77237716103ABC11A1DF38855ED6F2EE187E9C582BA6)
 
 parsedPubKeyHash :: PubKeyHash
 parsedPubKeyHash = PubKeyHash . fromJust . digestFromByteString $ rawPubKeyHash
 
+-- TODO: Fix so that it doesn't use the decode function.
 parsedTribeCoinAddress :: TribeCoinAddress
 parsedTribeCoinAddress = either (error "Failed to parse raw TribeCoin address!") (id) . decode $ rawTribeCoinAddress

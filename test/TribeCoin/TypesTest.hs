@@ -11,6 +11,24 @@ import Data.Serialize (encode, decode)
 import Data.Word (Word32)
 import qualified Test.Tasty.Hspec as HS
 
+spec_PubKey :: HS.Spec
+spec_PubKey = do
+  HS.describe "PubKey Tests" $ do
+
+    HS.describe "Encoding Tests" $ do
+      -- Verify that an encoded public key is the same as its raw representation.
+      HS.it "Encoding Works" $ do
+        encode parsedPubKey `HS.shouldBe` rawPubKey
+
+      -- Verify that encoded public keys are 65 bytes long.
+      HS.it "Encoded Length" $ do
+        (BS.length . encode $ parsedPubKey) `HS.shouldBe` 65
+    
+    HS.describe "Decoding Tests" $ do
+      -- Verify that a decoded raw public key is the same as its parsed representation.
+      HS.it "Decoding Works" $ do
+        decode rawPubKey `HS.shouldBe` Right parsedPubKey
+
 spec_PubKeyHash :: HS.Spec
 spec_PubKeyHash = do
   HS.describe "PubKeyHash Tests" $ do
