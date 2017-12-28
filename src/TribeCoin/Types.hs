@@ -38,7 +38,7 @@ import qualified Crypto.Secp256k1 as ECC
 import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
 import qualified Crypto.PubKey.ECC.ECDSA as ECC2 (PublicKey (..), PublicPoint (..))
 import qualified Crypto.PubKey.ECC.Types as CPET (Point (..), Curve, CurveName (..), getCurveByName)
-import qualified Crypto.Number.Serialize as CNS (os2ip)
+import qualified Crypto.Number.Serialize as CNS (i2osp, os2ip)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append, length)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
@@ -323,7 +323,10 @@ instance Serialize PubKey where
       Just pubkey -> return . PubKey $ pubkey
 
 instance Serialize PubKey2 where
-  put (PubKey2 (ECC2.PublicKey _ (CPET.Point x y))) = putWord8 0x04 >> put x >> put y 
+  put (PubKey2 (ECC2.PublicKey _ (CPET.Point x y))) = do
+    putWord8 0x04
+    putByteString (CNS.i2osp x)
+    putByteString (CNS.i2osp y) 
   -- TODO: This shouldn't ever happen. Maybe throw an error or something here?
   put (PubKey2 (ECC2.PublicKey _ CPET.PointO)) = undefined
   
