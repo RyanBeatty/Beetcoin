@@ -11,44 +11,40 @@ import Data.Serialize (encode, decode)
 import Data.Word (Word32)
 import qualified Test.Tasty.Hspec as HS
 
-pubKeyHash :: PubKeyHash
-pubKeyHash = PubKeyHash . fromJust . digestFromByteString $ rawPubKeyHash
-
 spec_PubKeyHash :: HS.Spec
 spec_PubKeyHash = do
   HS.describe "PubKeyHash Tests" $ do
+
     HS.describe "Encoding Tests" $ do
       -- Verify that an encoded public key hash is the same as its raw representation.
       HS.it "Encoding Works" $ do
-        encode pubKeyHash `HS.shouldBe` rawPubKeyHash
+        encode parsedPubKeyHash `HS.shouldBe` rawPubKeyHash
       
       -- Makes sure that the encoded public key hash is 20 bytes long.
       HS.it "Encoded Length" $ do
-        (BS.length . encode $ pubKeyHash) `HS.shouldBe` 20
+        (BS.length . encode $ parsedPubKeyHash) `HS.shouldBe` 20
 
     HS.describe "Decoding Tests" $ do
       -- Verify that decoding a raw public key results in the correct internal representation.
       HS.it "Decode Works" $ do
-        decode rawPubKeyHash `HS.shouldBe` Right pubKeyHash
+        decode rawPubKeyHash `HS.shouldBe` Right parsedPubKeyHash
 
 spec_TribeCoinAddress :: HS.Spec
 spec_TribeCoinAddress = do
   HS.describe "TribeCoinAddress" $ do
-    let checksum = AddressChecksum (0xD61967F6 :: Word32)
-    let address  = TribeCoinAddress pubKeyHash checksum
     
     HS.describe "Encoding Tests" $ do
       -- Verify that an encoded tribe coin address is the same as its raw representation.
       HS.it "Encoding Works" $ do
-        encode address `HS.shouldBe` rawTribeCoinAddress
+        encode parsedTribeCoinAddress `HS.shouldBe` rawTribeCoinAddress
 
       -- Verify that an encoded tribe coin address has a length of 33 bytes.
       -- TODO: Make sure 33 is the correct number here. It should be 25 bytes before it is
       -- base58 encoded.
       HS.it "Encoded Length" $ do
-        (BS.length . encode $ address) `HS.shouldBe` 33
+        (BS.length . encode $ parsedTribeCoinAddress) `HS.shouldBe` 33
   
     HS.describe "Decoding Tests" $ do
       -- Verify that a decoded raw tribe coin address matches its internal representation.
       HS.it "Decode Works" $ do
-        decode rawTribeCoinAddress `HS.shouldBe` Right address 
+        decode rawTribeCoinAddress `HS.shouldBe` Right parsedTribeCoinAddress 
