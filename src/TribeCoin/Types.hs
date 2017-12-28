@@ -179,6 +179,7 @@ data Outpoint = Outpoint
 newtype PubKey = PubKey { _unPubKey :: ECC.PubKey }
   deriving (Show)
 
+-- | Represents an ECC public key for use in ECDSA.
 newtype PubKey2 = PubKey2 { _unPubKey2 :: ECC2.PublicKey }
   deriving (Show)
 
@@ -322,12 +323,17 @@ instance Serialize PubKey where
       Nothing     -> MF.fail "Invalid DER encoded PubKey."
       Just pubkey -> return . PubKey $ pubkey
 
+-- | A public key has a raw format of 65 bytes. It starts with a header byte (0x04)
+-- and is followed by one 32 byte integer (X coord) and then another 32 byte
+-- integer (Y coord).
+-- TODO: Support serializing to/from compressed format.
 instance Serialize PubKey2 where
   put (PubKey2 (ECC2.PublicKey _ (CPET.Point x y))) = do
     putWord8 0x04
     putByteString (CNS.i2osp x)
     putByteString (CNS.i2osp y) 
-  -- TODO: This shouldn't ever happen. Maybe throw an error or something here?
+  -- TODO: This shouldn't ever happen because Point at Inifinity isn't a valid public key vlaue.
+  -- Maybe throw an error or something here?
   put (PubKey2 (ECC2.PublicKey _ CPET.PointO)) = undefined
   
   get = do
