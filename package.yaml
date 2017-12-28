@@ -28,7 +28,6 @@ dependencies:
 - cryptonite
 - memory
 - mtl
-- secp256k1
 - time
 - unix-time
 - unordered-containers

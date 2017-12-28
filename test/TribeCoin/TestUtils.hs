@@ -4,7 +4,6 @@ module TribeCoin.TestUtils where
 import TribeCoin.Types (PubKey (..), PubKeyHash (..), TribeCoinAddress (..))
 
 import Crypto.Hash (digestFromByteString)
-import Crypto.Secp256k1 (importPubKey)
 import qualified Data.ByteString as BS (ByteString, pack, append)
 import Data.ByteString.Base58 (encodeBase58, bitcoinAlphabet)
 import Data.Either (either)
@@ -65,7 +64,7 @@ rawTribeCoinAddress :: BS.ByteString
 rawTribeCoinAddress = encodeBase58 bitcoinAlphabet $ rawVersionByte `BS.append` rawPubKeyHash `BS.append` rawAddressChecksum
 
 parsedPubKey :: PubKey
-parsedPubKey = PubKey . fromJust . importPubKey $ rawPubKey
+parsedPubKey = either (error "Failed to parse raw PubKey!") (id) . decode $ rawPubKey
 
 parsedPubKeyHash :: PubKeyHash
 parsedPubKeyHash = PubKeyHash . fromJust . digestFromByteString $ rawPubKeyHash

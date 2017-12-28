@@ -20,7 +20,6 @@ module TribeCoin.Types
     , SigMsg (..)
     , Sig (..)
     , PubKey (..)
-    , PubKey2 (..)
     , TxOut (..)
     , TxId (..)
     , TxIndex (..)
@@ -30,13 +29,9 @@ module TribeCoin.Types
 import Control.Monad.Fail as MF (fail)
 import Control.Monad.State (StateT (..))
 import Control.Monad.State.Class (MonadState)
-import qualified Crypto.Secp256k1 as ECC 
-  ( PubKey, Sig, exportPubKey
-  , importPubKey, importSig, exportSig
-  , Msg
-  )
 import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
-import qualified Crypto.PubKey.ECC.ECDSA as ECC2 (PublicKey (..), PublicPoint (..))
+import qualified Crypto.PubKey.ECC.ECDSA as ECC
+  ( PublicKey (..), PublicPoint (..), Signature (..), PrivateKey (..), PrivateNumber)
 import qualified Crypto.PubKey.ECC.Types as CPET (Point (..), Curve, CurveName (..), getCurveByName)
 import qualified Crypto.Number.Serialize as CNS (i2osp, os2ip)
 import Data.ByteArray (ByteArrayAccess, convert)
@@ -175,28 +170,31 @@ data Outpoint = Outpoint
   , _txIndex :: TxIndex -- ^ The output index within the transaction.
   } deriving (Show, Eq, Generic)
 
--- | Represents a public key used in ECDSA with curve secp256k1.
-newtype PubKey = PubKey { _unPubKey :: ECC.PubKey }
-  deriving (Show)
-
--- | Represents an ECC public key for use in ECDSA.
-newtype PubKey2 = PubKey2 { _unPubKey2 :: ECC2.PublicKey }
-  deriving (Show)
-
 secp256k1 :: CPET.Curve
 secp256k1 = CPET.getCurveByName CPET.SEC_p256k1
 
-mkPubKey :: ECC2.PublicPoint -> PubKey2
-mkPubKey point = PubKey2 $ ECC2.PublicKey secp256k1 point
+newtype PrivKey = PrivKey { _unPrivKey :: ECC.PrivateKey }
+  deriving (Show)
+
+mkPrivKey :: ECC.PrivateNumber -> PrivKey
+mkPrivKey num = PrivKey $ ECC.PrivateKey secp256k1 num
+
+-- | Represents an ECC public key for use in ECDSA.
+newtype PubKey = PubKey { _unPubKey :: ECC.PublicKey }
+  deriving (Show)
+
+mkPubKey :: ECC.PublicPoint -> PubKey
+mkPubKey point = PubKey $ ECC.PublicKey secp256k1 point
 
 -- | Represents a ECDSA signature using the secp256k1 curve. Serialized as a DER
 -- encoded bytestring.
-newtype Sig = Sig { _unSig :: ECC.Sig }
+newtype Sig = Sig { _unSig :: ECC.Signature }
   deriving (Show)
 
 -- | Represents the signed message used in signature scripts. Created by signing all of
 -- the transaction outputs.
-newtype SigMsg = SigMsg { _unSigMsg :: ECC.Msg }
+-- TODO: Decide if I need this.
+newtype SigMsg = SigMsg { _unSigMsg :: () }
   deriving (Show)
 
 -- | Represents data needed to claim ownership over coins in a specific output.
@@ -312,29 +310,23 @@ instance Serialize TxId where
   
   get = TxId <$> getDigest 256 "Invalid TxId"
 
--- TODO: Support serializing to/from compressed format.
-instance Serialize PubKey where
-  put (PubKey pubkey) = putByteString . ECC.exportPubKey False $ pubkey
-  
-  get = do
-    -- public keys are 65 bytes long (id byte + two 32 byte integers).
-    bytes <- getByteString 65
-    case ECC.importPubKey bytes of
-      Nothing     -> MF.fail "Invalid DER encoded PubKey."
-      Just pubkey -> return . PubKey $ pubkey
+instance Serialize PrivKey where
+  put (PrivKey (ECC.PrivateKey _ num)) = putByteString . CNS.i2osp $ num
+
+  get = mkPrivKey <$> CNS.os2ip <$> getByteString 32
 
 -- | A public key has a raw format of 65 bytes. It starts with a header byte (0x04)
 -- and is followed by one 32 byte integer (X coord) and then another 32 byte
 -- integer (Y coord).
 -- TODO: Support serializing to/from compressed format.
-instance Serialize PubKey2 where
-  put (PubKey2 (ECC2.PublicKey _ (CPET.Point x y))) = do
+instance Serialize PubKey where
+  put (PubKey (ECC.PublicKey _ (CPET.Point x y))) = do
     putWord8 0x04
-    putByteString (CNS.i2osp x)
-    putByteString (CNS.i2osp y) 
+    putByteString . CNS.i2osp $ x
+    putByteString . CNS.i2osp $ y
   -- TODO: This shouldn't ever happen because Point at Inifinity isn't a valid public key vlaue.
   -- Maybe throw an error or something here?
-  put (PubKey2 (ECC2.PublicKey _ CPET.PointO)) = undefined
+  put (PubKey (ECC.PublicKey _ CPET.PointO)) = undefined
   
   get = do
     has_prefix <- (==) 0x04 <$> getWord8
@@ -346,11 +338,13 @@ instance Serialize PubKey2 where
         return . mkPubKey $ CPET.Point x y
 
 instance Serialize Sig where
-  put (Sig sig) = putByteString . ECC.exportSig $ sig
+  put = undefined
+  get = undefined
+--   put (Sig sig) = putByteString . ECC.exportSig $ sig
 
-  get = do
-    -- TODO: remove remaining call. This will lead to bugs in the future.
-    bytes <- remaining >>= \n -> getByteString n
-    case ECC.importSig bytes of
-      Nothing  -> MF.fail "Invalid DER encoded Signature."
-      Just sig -> return . Sig $ sig
+--   get = do
+--     -- TODO: remove remaining call. This will lead to bugs in the future.
+--     bytes <- remaining >>= \n -> getByteString n
+--     case ECC.importSig bytes of
+--       Nothing  -> MF.fail "Invalid DER encoded Signature."
+--       Just sig -> return . Sig $ sig
