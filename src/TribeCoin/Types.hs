@@ -19,11 +19,14 @@ module TribeCoin.Types
     , SigScript (..)
     , SigMsg (..)
     , Sig (..)
+    , PrivKey (..)
     , PubKey (..)
+    , mkPubKey
     , TxOut (..)
     , TxId (..)
     , TxIndex (..)
     , Outpoint (..)
+    , secp256k1
     ) where
 
 import Control.Monad.Fail as MF (fail)
@@ -310,9 +313,11 @@ instance Serialize TxId where
   
   get = TxId <$> getDigest 256 "Invalid TxId"
 
+-- | A private key has a raw format of a 32 byte integer.
 instance Serialize PrivKey where
   put (PrivKey (ECC.PrivateKey _ num)) = putByteString . CNS.i2osp $ num
 
+  -- TODO: Check for valid key range.
   get = mkPrivKey <$> CNS.os2ip <$> getByteString 32
 
 -- | A public key has a raw format of 65 bytes. It starts with a header byte (0x04)

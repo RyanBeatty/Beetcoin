@@ -3,7 +3,8 @@ module TribeCoin.Arbitrary where
 import TribeCoin.Types
 
 import Crypto.Hash (SHA256 (..), digestFromByteString, hashWith)
-import Crypto.Secp256k1 (importPubKey, secKey, derivePubKey)
+import Crypto.PubKey.ECC.DH (calculatePublic)
+import Crypto.PubKey.ECC.ECDSA (PublicKey (..), PrivateKey (..))
 import Data.ByteArray (convert)
 import qualified Data.ByteString as BS (ByteString, pack, cons, take)
 import Data.Either (either)
@@ -11,6 +12,9 @@ import Data.Maybe (fromJust)
 import Data.Serialize (encode, decode)
 import Data.Word (Word8, Word32, Word64)
 import Test.Tasty.QuickCheck (Arbitrary, Gen, arbitrary, vector)
+
+newtype RandomPrivKey = RandomPrivKey { _unRandomPrivKey :: PrivKey }
+  deriving (Show)
 
 -- | Represents a random, valid public key.
 newtype RandomPubKey = RandomPubKey { _unRandomPubKey :: PubKey }
@@ -35,10 +39,14 @@ newtype RandomTxId = RandomTxId { _unRandomTxId :: TxId }
 newtype RandomOutpoint = RandomOutpoint { _unRandomOutpoint :: Outpoint }
   deriving (Show)
 
+instance Arbitrary RandomPrivKey where
+  arbitrary = RandomPrivKey . either (error "Failed to parse generated PrivKey!") (id) . decode . BS.pack <$> vector 32
+
 instance Arbitrary RandomPubKey where
   -- | Generate a random public key by first generating a random private key and then deriving a public
   -- key from the private key.
-  arbitrary = RandomPubKey . PubKey . derivePubKey . fromJust . secKey . BS.pack <$> vector 32
+  arbitrary = RandomPubKey . mkPubKey . calculatePublic secp256k1 . private_d . _unPrivKey . _unRandomPrivKey <$> arbitrary
+  --arbitrary = RandomPubKey . PubKey . derivePubKey . fromJust . secKey . BS.pack <$> vector 32
 
 instance Arbitrary RandomPubKeyHash where
   arbitrary = do
