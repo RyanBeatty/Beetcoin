@@ -57,15 +57,15 @@ instance Arbitrary RandomPubKeyHash where
     return . RandomPubKeyHash . PubKeyHash . fromJust . digestFromByteString . BS.pack $ bytes
 
 instance Arbitrary RandomTribeCoinAddress where
-  arbitrary = do
-    -- Generate a random public key hash.
-    pubkey_hash <- _unRandomPubKeyHash <$> arbitrary :: Gen PubKeyHash
-    -- Generate the checksum by prepending the version byte (0x00) and then sha256 hashing the
-    -- bytes twice. The checksum is then the first 4 bytes of the hash.
-    let bytes    = (0x00 :: Word8) `BS.cons` (encode pubkey_hash)
-    let checksum = AddressChecksum . either (error "Failed to parse AddressChecksum!") (id) . decode . BS.take 4 .
-                   convert . hashWith SHA256 . hashWith SHA256 $ bytes
-    return . RandomTribeCoinAddress $ TribeCoinAddress pubkey_hash checksum
+  arbitrary = RandomTribeCoinAddress . TribeCoinAddress . _unRandomPubKeyHash <$> arbitrary
+    -- -- Generate a random public key hash.
+    -- pubkey_hash <- _unRandomPubKeyHash <$> arbitrary :: Gen PubKeyHash
+    -- -- Generate the checksum by prepending the version byte (0x00) and then sha256 hashing the
+    -- -- bytes twice. The checksum is then the first 4 bytes of the hash.
+    -- let bytes    = (0x00 :: Word8) `BS.cons` (encode pubkey_hash)
+    -- let checksum = AddressChecksum . either (error "Failed to parse AddressChecksum!") (id) . decode . BS.take 4 .
+    --                convert . hashWith SHA256 . hashWith SHA256 $ bytes
+    -- return . RandomTribeCoinAddress $ TribeCoinAddress pubkey_hash checksum
 
 instance Arbitrary RandomTxOut where
   -- | Generate a random transaction output by sending a random amount to a random address.

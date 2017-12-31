@@ -8,7 +8,6 @@ module TribeCoin.Types
     , BlockHeader (..)
     , Block (..)
     , Amount (..)
-    , AddressChecksum (..)
     , TXVersion (..)
     , PubKeyHash (..)
     , TribeCoinAddress (..)
@@ -35,13 +34,13 @@ module TribeCoin.Types
 import Control.Monad.Fail as MF (fail)
 import Control.Monad.State (StateT (..))
 import Control.Monad.State.Class (MonadState)
-import Crypto.Hash (Digest, SHA256, RIPEMD160, HashAlgorithm, digestFromByteString)
+import Crypto.Hash (Digest, SHA256 (..), RIPEMD160, HashAlgorithm, digestFromByteString, hashWith)
 import qualified Crypto.PubKey.ECC.ECDSA as ECC
   ( PublicKey (..), PublicPoint (..), Signature (..), PrivateKey (..), PrivateNumber)
 import qualified Crypto.PubKey.ECC.Types as CPET (Point (..), Curve, CurveName (..), getCurveByName)
 import qualified Crypto.Number.Serialize as CNS (i2osp, os2ip)
 import Data.ByteArray (ByteArrayAccess, convert)
-import qualified Data.ByteString as BS (ByteString, append, length)
+import qualified Data.ByteString as BS (ByteString, append, length, take, cons)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
 import qualified Data.HashMap.Strict as HM (HashMap)
 import Data.Serialize
@@ -123,12 +122,6 @@ newtype ChainT m a = ChainT { _unChainT :: StateT ChainState m a }
 newtype Amount = Amount { _unAmount :: Word64 }
   deriving (Show, Eq, Generic)
 
--- | The checksum used to verify a public key hash has not been altered. Obtained by
--- taking the first 4 bytes of an address version + public key hash after furthering
--- hashing it twice with sha256.
-newtype AddressChecksum = AddressChecksum { _unAddressChecksum :: Word32 }
-  deriving (Show, Eq, Generic)
-
 -- | The version of validation rules a transaction should be validated against.
 -- This might not be necessary in the long term, but its nice to have just in case.
 data TXVersion = TXVersion
@@ -141,7 +134,7 @@ newtype PubKeyHash = PubKeyHash { _unPubKeyHash :: Digest RIPEMD160 }
 
 -- ^ The prefix that is prepended to the payment script (e.g. tribe coin address).
 newtype Prefix = Prefix { _unPrefix :: Word8 }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 -- | Version byte prefix for tribe coin addresses.
 addressPrefix :: Prefix
@@ -152,7 +145,6 @@ addressPrefix = Prefix 0x00
 -- TODO: Remove address checksum. I don't think I need it.
 data TribeCoinAddress = TribeCoinAddress
   { _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
-  , _checksum :: AddressChecksum -- ^ checksum for the version + public key hash.
   } deriving (Show, Eq)
 
 -- | Represents a transaction output.
@@ -262,7 +254,6 @@ instance Serialize Target
 instance Serialize Nonce
 instance Serialize BlockHeader
 instance Serialize Amount
-instance Serialize AddressChecksum
 instance Serialize Prefix
 instance Serialize TxOut
 instance Serialize TxIndex
@@ -291,32 +282,47 @@ instance Serialize PubKeyHash where
   
   get = PubKeyHash <$> getDigest 20 "Invalid PubKeyHash"
 
+-- | Calculate the checksum of a tribecoin address. Concatenate the prefix version byte and the hash
+-- of the public key, hash the resulting bytestring twice using sha256, and then take the first 4 bytes.
+calculateAddressChecksum :: Prefix -> PubKeyHash -> BS.ByteString
+calculateAddressChecksum prefix hash =
+  let bytes    = (_unPrefix prefix) `BS.cons` (convert . _unPubKeyHash $ hash)
+      digest   = convert . hashWith SHA256 . hashWith SHA256 $ bytes
+  in BS.take 4 digest
+
 instance Serialize TribeCoinAddress where
   -- | A tribe coin address is serialized by concatentating a version number, the public
   -- key hash, and the checksum together as bytes and then base58 encoding the
   -- bytestring.
-  put (TribeCoinAddress hash checksum) = do
+  put (TribeCoinAddress hash) = do
     putByteString . encodeBase58 bitcoinAlphabet . runPut $ do
       put addressPrefix
       put hash
-      put checksum
+      putByteString (calculateAddressChecksum addressPrefix hash)
 
   get = do
     -- First reverse the base58 encoding.
     bytes <- getByteString 33
     case decodeBase58 bitcoinAlphabet bytes of
       Nothing     -> MF.fail "Invalid base58 encoded TribeCoinAddress."
-      Just bytes' ->
-        -- Then try and parse the address.
-        let parseAddress :: BS.ByteString -> Either String TribeCoinAddress
-            parseAddress = \b -> flip runGet b $ do
-              _        <- get :: Get Prefix
-              hash     <- get :: Get PubKeyHash
-              checksum <- get :: Get AddressChecksum
-              return $ TribeCoinAddress hash checksum
-        in case parseAddress bytes' of
-          Left error    -> MF.fail error
-          Right address -> return address
+      Just bytes' -> do
+        -- Try to parse the address.
+        case parseAddress bytes' of
+          Left msg      -> MF.fail msg
+          Right address -> return address 
+    where parseAddress :: BS.ByteString -> Either String TribeCoinAddress
+          parseAddress bs = flip runGet bs $ do
+            -- Check the prefix is the right version.
+            prefix <- get :: Get Prefix
+            case prefix == addressPrefix of
+              False -> MF.fail "Invalid TribeCoinAddress Prefix!"
+              True  -> do
+                -- Verify the checksum is correct.
+                hash     <- get :: Get PubKeyHash
+                checksum <- getByteString 4
+                case checksum == calculateAddressChecksum prefix hash of
+                  False -> MF.fail "Invalid TribeCoinAddress checksum for PubKeyHash!"
+                  True  -> return $ TribeCoinAddress hash 
 
 instance Serialize TxId where
   put (TxId digest) = putDigest digest
