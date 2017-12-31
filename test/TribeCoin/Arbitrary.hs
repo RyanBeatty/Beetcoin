@@ -41,6 +41,8 @@ newtype RandomOutpoint = RandomOutpoint { _unRandomOutpoint :: Outpoint }
 
 
 instance Arbitrary RandomPrivKey where
+  -- | Generate a random private key by creating a random 32 byte number.
+  -- TODO: Create MonadRandom instance for Arbitrary and use the cryptonite generator functions.
   arbitrary = RandomPrivKey . either (error "Failed to parse generated PrivKey!") (id) . decode . BS.pack <$> vector 32
 
 instance Arbitrary RandomPubKey where
