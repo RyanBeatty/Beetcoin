@@ -191,8 +191,7 @@ newtype PubKey = PubKey { _unPubKey :: ECC.PublicKey }
 mkPubKey :: ECC.PublicPoint -> PubKey
 mkPubKey point = PubKey $ ECC.PublicKey secp256k1 point
 
--- | Represents a ECDSA signature using the secp256k1 curve. Serialized as a DER
--- encoded bytestring.
+-- | Represents a ECDSA signature using the secp256k1 curve with SHA256 hashing.
 newtype Sig = Sig { _unSig :: ECC.Signature }
   deriving (Show)
 
@@ -363,14 +362,14 @@ instance Serialize PubKey where
         y <- CNS.os2ip <$> getByteString 32
         return . mkPubKey $ CPET.Point x y
 
+-- | A raw signature consists of two 32 byte integers (r and s).
+-- TODO: Verify that the integers are always 32 bytes each.
 instance Serialize Sig where
-  put = undefined
-  get = undefined
---   put (Sig sig) = putByteString . ECC.exportSig $ sig
-
---   get = do
---     -- TODO: remove remaining call. This will lead to bugs in the future.
---     bytes <- remaining >>= \n -> getByteString n
---     case ECC.importSig bytes of
---       Nothing  -> MF.fail "Invalid DER encoded Signature."
---       Just sig -> return . Sig $ sig
+  put (Sig (ECC.Signature r s)) = do
+    putByteString . CNS.i2osp $ r
+    putByteString . CNS.i2osp $ s
+  
+  get = do
+    r <- CNS.os2ip <$> getByteString 32
+    s <- CNS.os2ip <$> getByteString 32
+    return . Sig $ ECC.Signature r s

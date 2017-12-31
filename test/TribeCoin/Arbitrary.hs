@@ -39,6 +39,10 @@ newtype RandomTxId = RandomTxId { _unRandomTxId :: TxId }
 newtype RandomOutpoint = RandomOutpoint { _unRandomOutpoint :: Outpoint }
   deriving (Show)
 
+-- | A valid random signature.
+newtype RandomSig = RandomSig { _unRandomSig :: Sig }
+  deriving (Show)
+
 
 instance Arbitrary RandomPrivKey where
   -- | Generate a random private key by creating a random 32 byte number.
@@ -76,3 +80,7 @@ instance Arbitrary RandomOutpoint where
     index <- TxIndex <$> arbitrary
     txId  <- _unRandomTxId <$> arbitrary
     return . RandomOutpoint $ Outpoint txId index
+
+instance Arbitrary RandomSig where
+  -- | Generate a random signature by generating a random 64 byte bytestring.
+  arbitrary = RandomSig . either (error . (++) "Failed to parse generated Sig: ") (id) . decode . BS.pack <$> vector 64
