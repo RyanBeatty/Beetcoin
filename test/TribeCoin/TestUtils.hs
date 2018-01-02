@@ -4,7 +4,7 @@ module TribeCoin.TestUtils where
 import TribeCoin.Types
 
 import Crypto.Hash (digestFromByteString)
-import Crypto.PubKey.ECC.ECDSA (PublicKey (..), PrivateKey (..))
+import Crypto.PubKey.ECC.ECDSA (PublicKey (..), PrivateKey (..), Signature (..))
 import Crypto.PubKey.ECC.Types (Point (..))
 import qualified Data.ByteString as BS (ByteString, pack, append)
 import Data.ByteString.Base58 (encodeBase58, bitcoinAlphabet)
@@ -80,3 +80,12 @@ parsedPubKeyHash = PubKeyHash . fromJust . digestFromByteString $ rawPubKeyHash
 -- | Parsed representation of a tribecoin address.
 parsedTribeCoinAddress :: TribeCoinAddress
 parsedTribeCoinAddress = TribeCoinAddress parsedPubKeyHash
+
+-- | Parsed representation of a signed message. The string "The quick, brown fox jumps over the lazy dog." was
+-- encoded as a bytestring and then signed using the cryptonite ECDSA functions.
+parsedSig :: Sig
+parsedSig = Sig $ Signature 78699570603611690428924495811105138185150196139902674087121660046572889070950
+                            46020018641752249994803304601687045467005478091757143026168859170816958885749
+
+parsedSigMsg :: SigMsg
+parsedSigMsg = SigMsg . encode $ "The quick, brown fox jumps over the lazy dog."

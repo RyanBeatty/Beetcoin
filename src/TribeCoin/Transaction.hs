@@ -1,10 +1,13 @@
 module TribeCoin.Transaction 
   ( verifyPubKey
+  , verifySig
   ) where
 
 import TribeCoin.Types (TxMap (..), Transaction (..), PubKeyHash (..), SigScript (..), SigMsg (..), PubKey (..), Sig (..))
 import TribeCoin.Utils (sha256, ripemd160)
 
+import Crypto.Hash (SHA256 (..))
+import qualified Crypto.PubKey.ECC.ECDSA as ECC (verify)
 import qualified Data.ByteString as BS (ByteString)
 import Data.Serialize (encode)
 
@@ -27,4 +30,4 @@ verifyPubKey pubkey hash =
 
 -- | Verifies that a signature is valid given a public key and a message to sign.
 verifySig :: PubKey -> Sig -> SigMsg -> Bool
-verifySig pubkey sig msg = undefined -- ECC.verifySig (_unPubKey pubkey) (_unSig sig) (_unSigMsg msg)
+verifySig pubkey sig msg = ECC.verify SHA256 (_unPubKey pubkey) (_unSig sig) (_unSigMsg msg)

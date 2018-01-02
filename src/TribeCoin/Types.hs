@@ -198,7 +198,7 @@ newtype Sig = Sig { _unSig :: ECC.Signature }
 -- | Represents the signed message used in signature scripts. Created by signing all of
 -- the transaction outputs.
 -- TODO: Decide if I need this.
-newtype SigMsg = SigMsg { _unSigMsg :: () }
+newtype SigMsg = SigMsg { _unSigMsg :: BS.ByteString }
   deriving (Show)
 
 -- | Represents data needed to claim ownership over coins in a specific output.
