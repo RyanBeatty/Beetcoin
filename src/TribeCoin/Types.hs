@@ -288,10 +288,10 @@ calculateAddressChecksum prefix hash =
       digest   = convert . hashWith SHA256 . hashWith SHA256 $ bytes
   in BS.take 4 digest
 
+-- | A tribe coin address is serialized by concatentating a version number, the public
+-- key hash, and the checksum together as bytes and then base58 encoding the
+-- bytestring.
 instance Serialize TribeCoinAddress where
-  -- | A tribe coin address is serialized by concatentating a version number, the public
-  -- key hash, and the checksum together as bytes and then base58 encoding the
-  -- bytestring.
   put (TribeCoinAddress hash) = do
     putByteString . encodeBase58 bitcoinAlphabet . runPut $ do
       put addressPrefix
