@@ -192,12 +192,11 @@ mkPubKey :: ECC.PublicPoint -> PubKey
 mkPubKey point = PubKey $ ECC.PublicKey secp256k1 point
 
 -- | Represents a ECDSA signature using the secp256k1 curve with SHA256 hashing.
+-- Created by signing all of the transaction inputs and outputs.
 newtype Sig = Sig { _unSig :: ECC.Signature }
   deriving (Show)
 
--- | Represents the signed message used in signature scripts. Created by signing all of
--- the transaction outputs.
--- TODO: Decide if I need this.
+-- | Represents a message that can be signed or used to verify a signature is valid.
 newtype SigMsg = SigMsg { _unSigMsg :: BS.ByteString }
   deriving (Show)
 
