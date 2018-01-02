@@ -11,7 +11,7 @@ import Data.Either (either)
 import Data.Maybe (fromJust)
 import Data.Serialize (encode, decode)
 import Data.Word (Word8, Word32, Word64)
-import Test.Tasty.QuickCheck (Arbitrary, Gen, arbitrary, vector)
+import Test.Tasty.QuickCheck (Arbitrary, Gen, arbitrary, vector, listOf)
 
 newtype RandomPrivKey = RandomPrivKey { _unRandomPrivKey :: PrivKey }
   deriving (Show)
@@ -42,6 +42,9 @@ newtype RandomOutpoint = RandomOutpoint { _unRandomOutpoint :: Outpoint }
 -- | A valid random signature.
 newtype RandomSig = RandomSig { _unRandomSig :: Sig }
   deriving (Show)
+
+-- | A random bytestring to sign.
+newtype RandomSigMsg = RandomSigMsg { _unRandomSigMsg :: SigMsg }
 
 
 instance Arbitrary RandomPrivKey where
@@ -84,3 +87,7 @@ instance Arbitrary RandomOutpoint where
 instance Arbitrary RandomSig where
   -- | Generate a random signature by generating a random 64 byte bytestring.
   arbitrary = RandomSig . either (error . (++) "Failed to parse generated Sig: ") (id) . decode . BS.pack <$> vector 64
+
+instance Arbitrary RandomSigMsg where
+  -- | Generate a random message to sign by generating a random length bytestring.
+  arbitrary = RandomSigMsg . SigMsg . BS.pack <$> listOf arbitrary
