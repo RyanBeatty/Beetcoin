@@ -14,6 +14,8 @@ module TribeCoin.Types
     , ChainState (..)
     , ChainT (..)
     , TxMap (..)
+    , TxIn (..)
+    , TxOut (..)
     , Transaction (..)
     , SigScript (..)
     , SigMsg (..)
@@ -24,7 +26,6 @@ module TribeCoin.Types
     , privKeyUpperBound
     , PubKey (..)
     , mkPubKey
-    , TxOut (..)
     , TxId (..)
     , TxIndex (..)
     , Outpoint (..)

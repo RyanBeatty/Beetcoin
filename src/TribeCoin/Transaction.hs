@@ -3,7 +3,10 @@ module TribeCoin.Transaction
   , verifySig
   ) where
 
-import TribeCoin.Types (TxMap (..), Transaction (..), PubKeyHash (..), SigScript (..), SigMsg (..), PubKey (..), Sig (..))
+import TribeCoin.Types
+  ( TxMap (..), Transaction (..), PubKeyHash (..), SigScript (..), SigMsg (..), PubKey (..), Sig (..)
+  , Outpoint (..), TxOut (..), Amount (..), TxIn (..)
+  )
 import TribeCoin.Utils (sha256, ripemd160)
 
 import Crypto.Hash (SHA256 (..))
@@ -14,6 +17,15 @@ import Data.Serialize (encode)
 
 verifyTx :: Transaction -> TxMap -> Bool
 verifyTx tx tx_map = undefined
+
+verifyTxOuts :: [TxOut] -> Amount -> Bool
+verifyTxOuts = undefined
+
+verifyTxIn :: TxIn -> PubKeyHash -> SigMsg -> TxMap -> Bool
+verifyTxIn = undefined
+
+verifyOutpoint :: Outpoint -> TxMap -> Bool
+verifyOutpoint = undefined
 
 verifySigScript :: SigScript -> PubKeyHash -> SigMsg -> Bool
 verifySigScript script hash msg =
