@@ -19,14 +19,21 @@ verifyTx :: Transaction -> TxMap -> Bool
 verifyTx tx tx_map = undefined
 
 verifyTxOuts :: [TxOut] -> Amount -> Bool
-verifyTxOuts = undefined
+verifyTxOuts [] available = available == 0
+verifyTxOuts (output:os) available
+  -- This check avoids overflow/underflow issues.
+  | (_amount output) > available = False
+  | otherwise                    = verifyTxOuts os (available - (_amount output))
 
-verifyTxIn :: TxIn -> PubKeyHash -> SigMsg -> TxMap -> Bool
-verifyTxIn = undefined
+verifyTxIn :: TxIn -> PubKeyHash -> SigMsg -> TxMap -> Either String Amount
+verifyTxIn input hash msg map
+  | verifySigScript (_sigScript input) hash msg = verifyOutpoint (_prevOutput input) map
+  | otherwise                                   = Left "Failed to verify SigScript!"
 
-verifyOutpoint :: Outpoint -> TxMap -> Bool
+verifyOutpoint :: Outpoint -> TxMap -> Either String Amount
 verifyOutpoint = undefined
 
+-- | Verifies that a sig script is fulfilled.
 verifySigScript :: SigScript -> PubKeyHash -> SigMsg -> Bool
 verifySigScript script hash msg =
   let is_valid_pubkey = verifyPubKey (_pubKey script) hash

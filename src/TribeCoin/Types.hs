@@ -121,7 +121,7 @@ newtype ChainT m a = ChainT { _unChainT :: StateT ChainState m a }
 
 -- | The amount of tribe coin being transferred in a transaction output.
 newtype Amount = Amount { _unAmount :: Word64 }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Num, Ord, Generic)
 
 -- | The version of validation rules a transaction should be validated against.
 -- This might not be necessary in the long term, but its nice to have just in case.
