@@ -13,7 +13,7 @@ module TribeCoin.Types
     , TribeCoinAddress (..)
     , ChainState (..)
     , ChainT (..)
-    , TxMap (..)
+    , UtxoMap (..)
     , TxIn (..)
     , TxOut (..)
     , Transaction (..)
@@ -106,7 +106,7 @@ newtype BlockMap = BlockMap { _unBlockMap :: HM.HashMap BlockHash Block }
 
 data ChainState = ChainState
   { _blocks :: BlockMap
-  , _txSet :: TxMap
+  , _utxos :: UtxoMap
   } deriving (Show)
 
 newtype ChainT m a = ChainT { _unChainT :: StateT ChainState m a }
@@ -225,7 +225,12 @@ data Transaction =
                             -- ^ newly minted awarded to the miner of the block.
       } deriving (Show)
 
-newtype TxMap = TxMap { _unTxMap :: HM.HashMap TxId Transaction }
+data Utxo = Utxo
+  { _utxoAmount :: Amount
+  , _utxoSigScript :: SigScript
+  } deriving (Show)
+
+newtype UtxoMap = UtxoMap { _unUtxoMap :: HM.HashMap Outpoint Utxo }
   deriving (Show)
 
 -----------------------------------------------------------------------------------------
