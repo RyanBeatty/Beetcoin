@@ -1,8 +1,8 @@
-module TribeCoin.Blocks
+module BeetCoin.Blocks
     ( mineBlock
     ) where
 
-import TribeCoin.Types
+import BeetCoin.Types
   ( Block (..), BlockHeader (..), BlockHash (..), Nonce (..)
   , ChainT (..))
 

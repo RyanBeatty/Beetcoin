@@ -1,4 +1,4 @@
-module TribeCoin.Utils
+module BeetCoin.Utils
   ( sha256
   , ripemd160
   ) where

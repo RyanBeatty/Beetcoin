@@ -1,7 +1,7 @@
 -- | Contains utility functions and definitions used throughout testing code.
-module TribeCoin.TestUtils where
+module BeetCoin.TestUtils where
 
-import TribeCoin.Types
+import BeetCoin.Types
 
 import Crypto.Hash (digestFromByteString)
 import Crypto.PubKey.ECC.ECDSA (PublicKey (..), PrivateKey (..), Signature (..))
@@ -62,8 +62,8 @@ rawSig = BS.pack
 
 -- | Byte representation of an address. Taken from
 -- https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
-rawTribeCoinAddress :: BS.ByteString
-rawTribeCoinAddress = encodeBase58 bitcoinAlphabet $ rawVersionByte `BS.append` rawPubKeyHash `BS.append` rawAddressChecksum
+rawBeetCoinAddress :: BS.ByteString
+rawBeetCoinAddress = encodeBase58 bitcoinAlphabet $ rawVersionByte `BS.append` rawPubKeyHash `BS.append` rawAddressChecksum
 
 parsedPrivKey :: PrivKey
 parsedPrivKey = mkPrivKey 0x18E14A7B6A307F426A94F8114701E7C8E774E7F9A47E2C2035DB29A206321725
@@ -77,9 +77,9 @@ parsedPubKey = mkPubKey (Point 0x50863AD64A87AE8A2FE83C1AF1A8403CB53F53E486D8511
 parsedPubKeyHash :: PubKeyHash
 parsedPubKeyHash = PubKeyHash . fromJust . digestFromByteString $ rawPubKeyHash
 
--- | Parsed representation of a tribecoin address.
-parsedTribeCoinAddress :: TribeCoinAddress
-parsedTribeCoinAddress = TribeCoinAddress parsedPubKeyHash
+-- | Parsed representation of a BeetCoin address.
+parsedBeetCoinAddress :: BeetCoinAddress
+parsedBeetCoinAddress = BeetCoinAddress parsedPubKeyHash
 
 -- | Parsed representation of a signed message. The string "The quick, brown fox jumps over the lazy dog." was
 -- encoded as a bytestring and then signed using the cryptonite ECDSA functions.

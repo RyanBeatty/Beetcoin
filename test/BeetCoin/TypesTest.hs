@@ -1,7 +1,7 @@
-module TribeCoin.TypesTest where
+module BeetCoin.TypesTest where
 
-import TribeCoin.Types
-import TribeCoin.TestUtils
+import BeetCoin.Types
+import BeetCoin.TestUtils
 
 import Crypto.Hash (digestFromByteString)
 import Crypto.Number.Serialize (i2ospOf)
@@ -85,22 +85,22 @@ spec_PubKeyHash = do
       HS.it "Decode Works" $ do
         decode rawPubKeyHash `HS.shouldBe` Right parsedPubKeyHash
 
-spec_TribeCoinAddress :: HS.Spec
-spec_TribeCoinAddress = do
-  HS.describe "TribeCoinAddress" $ do
+spec_BeetCoinAddress :: HS.Spec
+spec_BeetCoinAddress = do
+  HS.describe "BeetCoinAddress" $ do
     
     HS.describe "Encoding Tests" $ do
       -- Verify that an encoded tribe coin address is the same as its raw representation.
       HS.it "Encoding Works" $ do
-        encode parsedTribeCoinAddress `HS.shouldBe` rawTribeCoinAddress
+        encode parsedBeetCoinAddress `HS.shouldBe` rawBeetCoinAddress
 
       -- Verify that an encoded tribe coin address has a length of 33 bytes.
       -- TODO: Make sure 33 is the correct number here. It should be 25 bytes before it is
       -- base58 encoded.
       HS.it "Encoded Length" $ do
-        (BS.length . encode $ parsedTribeCoinAddress) `HS.shouldBe` 33
+        (BS.length . encode $ parsedBeetCoinAddress) `HS.shouldBe` 33
   
     HS.describe "Decoding Tests" $ do
       -- Verify that a decoded raw tribe coin address matches its internal representation.
       HS.it "Decode Works" $ do
-        decode rawTribeCoinAddress `HS.shouldBe` Right parsedTribeCoinAddress 
+        decode rawBeetCoinAddress `HS.shouldBe` Right parsedBeetCoinAddress 

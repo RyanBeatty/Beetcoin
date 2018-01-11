@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-}
-module TribeCoin.Types
+module BeetCoin.Types
     ( BlockHash (..)
     , Timestamp (..)
     , TimestampDiff (..)
@@ -10,7 +10,7 @@ module TribeCoin.Types
     , Amount (..)
     , TXVersion (..)
     , PubKeyHash (..)
-    , TribeCoinAddress (..)
+    , BeetCoinAddress (..)
     , ChainState (..)
     , ChainT (..)
     , UtxoMap (..)
@@ -145,14 +145,14 @@ addressPrefix = Prefix 0x00
 -- | A tribe coin address represents a destination which coin can be sent to.
 -- Should be 33 bytes long when serialized.
 -- TODO: Remove address checksum. I don't think I need it.
-data TribeCoinAddress = TribeCoinAddress
+data BeetCoinAddress = BeetCoinAddress
   { _receiverPubKeyHash :: PubKeyHash -- ^ The hash of the public key of the recipient.
   } deriving (Show, Eq)
 
 -- | Represents a transaction output.
 data TxOut = TxOut
   { _amount :: Amount -- ^ The amount of coin in this output this can be spent.
-  , _receiverAddress :: TribeCoinAddress -- ^ The recipient of the transaction.
+  , _receiverAddress :: BeetCoinAddress -- ^ The recipient of the transaction.
   } deriving (Show, Generic)
   
 -- | Represents identifier of an unspent transaction in a transaction input.
@@ -289,7 +289,7 @@ instance Serialize PubKeyHash where
   
   get = PubKeyHash <$> getDigest 20 "Invalid PubKeyHash"
 
--- | Calculate the checksum of a tribecoin address. Concatenate the prefix version byte and the hash
+-- | Calculate the checksum of a BeetCoin address. Concatenate the prefix version byte and the hash
 -- of the public key, hash the resulting bytestring twice using sha256, and then take the first 4 bytes.
 calculateAddressChecksum :: Prefix -> PubKeyHash -> BS.ByteString
 calculateAddressChecksum prefix hash =
@@ -300,8 +300,8 @@ calculateAddressChecksum prefix hash =
 -- | A tribe coin address is serialized by concatentating a version number, the public
 -- key hash, and the checksum together as bytes and then base58 encoding the
 -- bytestring.
-instance Serialize TribeCoinAddress where
-  put (TribeCoinAddress hash) = do
+instance Serialize BeetCoinAddress where
+  put (BeetCoinAddress hash) = do
     putByteString . encodeBase58 bitcoinAlphabet . runPut $ do
       put addressPrefix
       put hash
@@ -311,25 +311,25 @@ instance Serialize TribeCoinAddress where
     -- First reverse the base58 encoding.
     bytes <- getByteString 33
     case decodeBase58 bitcoinAlphabet bytes of
-      Nothing     -> MF.fail "Invalid base58 encoded TribeCoinAddress."
+      Nothing     -> MF.fail "Invalid base58 encoded BeetCoinAddress."
       Just bytes' -> do
         -- Try to parse the address.
         case parseAddress bytes' of
           Left msg      -> MF.fail msg
           Right address -> return address 
-    where parseAddress :: BS.ByteString -> Either String TribeCoinAddress
+    where parseAddress :: BS.ByteString -> Either String BeetCoinAddress
           parseAddress bs = flip runGet bs $ do
             -- Check the prefix is the right version.
             prefix <- get :: Get Prefix
             case prefix == addressPrefix of
-              False -> MF.fail "Invalid TribeCoinAddress Prefix!"
+              False -> MF.fail "Invalid BeetCoinAddress Prefix!"
               True  -> do
                 -- Verify the checksum is correct.
                 hash     <- get :: Get PubKeyHash
                 checksum <- getByteString 4
                 case checksum == calculateAddressChecksum prefix hash of
-                  False -> MF.fail "Invalid TribeCoinAddress checksum for PubKeyHash!"
-                  True  -> return $ TribeCoinAddress hash 
+                  False -> MF.fail "Invalid BeetCoinAddress checksum for PubKeyHash!"
+                  True  -> return $ BeetCoinAddress hash 
 
 instance Serialize TxId where
   put (TxId digest) = putDigest digest

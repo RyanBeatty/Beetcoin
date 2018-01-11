@@ -1,6 +1,6 @@
-module TribeCoin.Arbitrary where
+module BeetCoin.Arbitrary where
 
-import TribeCoin.Types
+import BeetCoin.Types
 
 import Crypto.Hash (SHA256 (..), digestFromByteString, hashWith)
 import Crypto.PubKey.ECC.DH (calculatePublic)
@@ -25,7 +25,7 @@ newtype RandomPubKeyHash = RandomPubKeyHash { _unRandomPubKeyHash :: PubKeyHash 
   deriving (Show)
 
 -- | A valid random address.
-newtype RandomTribeCoinAddress = RandomTribeCoinAddress { _unRandomTribeCoinAddress :: TribeCoinAddress }
+newtype RandomBeetCoinAddress = RandomBeetCoinAddress { _unRandomBeetCoinAddress :: BeetCoinAddress }
   deriving (Show)
 
 -- | A valid random transaction output.
@@ -63,15 +63,15 @@ instance Arbitrary RandomPubKeyHash where
     bytes <- vector 20 :: Gen [Word8]
     return . RandomPubKeyHash . PubKeyHash . fromJust . digestFromByteString . BS.pack $ bytes
 
-instance Arbitrary RandomTribeCoinAddress where
+instance Arbitrary RandomBeetCoinAddress where
   -- Generate a random address by generating a random public key hash.
-  arbitrary = RandomTribeCoinAddress . TribeCoinAddress . _unRandomPubKeyHash <$> arbitrary
+  arbitrary = RandomBeetCoinAddress . BeetCoinAddress . _unRandomPubKeyHash <$> arbitrary
 
 instance Arbitrary RandomTxOut where
   -- | Generate a random transaction output by sending a random amount to a random address.
   arbitrary = do
     amount <- arbitrary :: Gen Word64
-    address <- _unRandomTribeCoinAddress <$> arbitrary :: Gen TribeCoinAddress
+    address <- _unRandomBeetCoinAddress <$> arbitrary :: Gen BeetCoinAddress
     return . RandomTxOut $ TxOut (Amount amount) address
 
 instance Arbitrary RandomTxId where

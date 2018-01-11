@@ -1,4 +1,4 @@
-module TribeCoin.Lib
+module BeetCoin.Lib
     ( someFunc
     ) where
 

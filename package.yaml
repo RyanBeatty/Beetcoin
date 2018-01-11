@@ -1,6 +1,6 @@
-name:                TribeCoin
+name:                BeetCoin
 version:             0.1.0.0
-github:              githubuser/TribeCoin
+github:              githubuser/BeetCoin
 license:             BSD3
 author:              Author name here
 maintainer:          example@example.com
@@ -17,7 +17,7 @@ synopsis:            Short description of your package
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/githubuser/TribeCoin#readme>
+description:         Please see the README on Github at <https://github.com/githubuser/BeetCoin#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -36,7 +36,7 @@ library:
   source-dirs: src
 
 executables:
-  TribeCoin-exe:
+  BeetCoin-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -44,10 +44,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - TribeCoin
+    - BeetCoin
 
 tests:
-  TribeCoin-test:
+  BeetCoin-test:
     main:                Driver.hs
     source-dirs:         test
     ghc-options:
@@ -55,7 +55,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - TribeCoin
+    - BeetCoin
     - tasty
     - tasty-discover
     - tasty-hspec

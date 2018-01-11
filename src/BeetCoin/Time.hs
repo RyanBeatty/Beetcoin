@@ -1,9 +1,9 @@
-module TribeCoin.Time
+module BeetCoin.Time
   (getCurrentTimsetamp
   , diffTimestamps
   ) where
 
-import TribeCoin.Types (Timestamp (..), TimestampDiff (..))
+import BeetCoin.Types (Timestamp (..), TimestampDiff (..))
 
 import Data.Time (diffUTCTime)
 import Data.Time.Clock.POSIX (getPOSIXTime, posixSecondsToUTCTime)

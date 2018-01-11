@@ -1,10 +1,10 @@
-module TribeCoin.TransactionTest where
+module BeetCoin.TransactionTest where
 
-import TribeCoin.Transaction
-import TribeCoin.Types (PubKey (..))
+import BeetCoin.Transaction
+import BeetCoin.Types (PubKey (..))
 
-import TribeCoin.Arbitrary (RandomPubKeyHash (..))
-import TribeCoin.TestUtils (parsedPubKey, parsedPubKeyHash, parsedSig, parsedSigMsg)
+import BeetCoin.Arbitrary (RandomPubKeyHash (..))
+import BeetCoin.TestUtils (parsedPubKey, parsedPubKeyHash, parsedSig, parsedSigMsg)
 
 import Test.Tasty.Hspec (Spec, it, describe)
 import Test.Tasty.QuickCheck (Property, forAll, arbitrary, suchThat)

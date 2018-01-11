@@ -1,6 +1,6 @@
 module Main where
 
-import TribeCoin.Lib
+import BeetCoin.Lib
 
 main :: IO ()
 main = someFunc

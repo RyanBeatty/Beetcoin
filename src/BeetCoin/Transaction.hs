@@ -1,13 +1,13 @@
-module TribeCoin.Transaction 
+module BeetCoin.Transaction 
   ( verifyPubKey
   , verifySig
   ) where
 
-import TribeCoin.Types
+import BeetCoin.Types
   ( UtxoMap (..), Transaction (..), PubKeyHash (..), SigScript (..), SigMsg (..), PubKey (..), Sig (..)
   , Outpoint (..), TxOut (..), Amount (..), TxIn (..), Utxo (..)
   )
-import TribeCoin.Utils (sha256, ripemd160)
+import BeetCoin.Utils (sha256, ripemd160)
 
 import Crypto.Hash (SHA256 (..))
 import qualified Crypto.PubKey.ECC.ECDSA as ECC (verify)
