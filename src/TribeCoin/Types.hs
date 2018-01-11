@@ -28,6 +28,7 @@ module TribeCoin.Types
     , mkPubKey
     , TxId (..)
     , TxIndex (..)
+    , Utxo (..)
     , Outpoint (..)
     , secp256k1
     ) where
@@ -225,11 +226,13 @@ data Transaction =
                             -- ^ newly minted awarded to the miner of the block.
       } deriving (Show)
 
+-- | Represents an unspent amount of coin resulting from the ouptut of a transaction.
 data Utxo = Utxo
-  { _utxoAmount :: Amount
-  , _utxoSigScript :: SigScript
+  { _utxoAmount :: Amount -- ^ The amount of coin unspent.
+  , _utxoSigScript :: SigScript -- ^ The script that needs to be satisfied to prove ownership of the coin.
   } deriving (Show)
 
+-- | Represents all of the unspent coin in the block chain.
 newtype UtxoMap = UtxoMap { _unUtxoMap :: HM.HashMap Outpoint Utxo }
   deriving (Show)
 

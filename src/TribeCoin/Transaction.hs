@@ -5,13 +5,14 @@ module TribeCoin.Transaction
 
 import TribeCoin.Types
   ( UtxoMap (..), Transaction (..), PubKeyHash (..), SigScript (..), SigMsg (..), PubKey (..), Sig (..)
-  , Outpoint (..), TxOut (..), Amount (..), TxIn (..)
+  , Outpoint (..), TxOut (..), Amount (..), TxIn (..), Utxo (..)
   )
 import TribeCoin.Utils (sha256, ripemd160)
 
 import Crypto.Hash (SHA256 (..))
 import qualified Crypto.PubKey.ECC.ECDSA as ECC (verify)
 import qualified Data.ByteString as BS (ByteString)
+import qualified Data.HashMap.Strict as HM (lookup)
 import Data.Serialize (encode)
 
 
@@ -31,7 +32,7 @@ verifyTxIn input hash msg map
   | otherwise                                   = Left "Failed to verify SigScript!"
 
 verifyOutpoint :: Outpoint -> UtxoMap -> Either String Amount
-verifyOutpoint = undefined
+verifyOutpoint outpoint utxos = undefined
 
 -- | Verifies that a sig script is fulfilled.
 verifySigScript :: SigScript -> PubKeyHash -> SigMsg -> Bool
