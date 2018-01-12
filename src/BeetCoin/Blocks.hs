@@ -28,7 +28,7 @@ processBlock block = do
 -- TODO: Add orphan verification stuff.
 validateBlock :: Block -> BlockMap -> BlockMap -> Bool
 validateBlock block main_chain off_chain =
-  checkDuplicate block main_chain off_chain &&
+  not (checkDuplicate block main_chain off_chain) &&
   _transactions block /= mempty &&
   validateBlockHash block &&
   validateTimeStamp block &&
@@ -43,19 +43,19 @@ checkDuplicate :: Block -> BlockMap -> BlockMap -> Bool
 checkDuplicate block main_chain off_chain = False
 
 validateBlockHash :: Block -> Bool
-validateBlockHash = undefined
+validateBlockHash block = True
 
 validateTimeStamp :: Block -> Bool
-validateTimeStamp = undefined
+validateTimeStamp block = True
 
 validateTransactions :: Block -> Bool
-validateTransactions = undefined
+validateTransactions block = True
 
 validateMerkleRootHash :: Block -> Bool
-validateMerkleRootHash = undefined
+validateMerkleRootHash block = True
 
 validateDifficulty :: Block -> Bool
-validateDifficulty = undefined
+validateDifficulty block = True
 
 
 -- | Hash a block header using sha256.
