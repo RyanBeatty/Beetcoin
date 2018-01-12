@@ -11,8 +11,9 @@ module BeetCoin.Types
     , TXVersion (..)
     , PubKeyHash (..)
     , BeetCoinAddress (..)
+    , BlockMap (..)
     , ChainState (..)
-    , ChainT (..)
+    , ChainStateT (..)
     , UtxoMap (..)
     , TxIn (..)
     , TxOut (..)
@@ -108,10 +109,10 @@ newtype BlockMap = BlockMap { _unBlockMap :: HM.HashMap BlockHash Block }
 data ChainState = ChainState
   { _mainChain :: BlockMap
   , _offChain :: BlockMap
-  , _utxos :: UtxoMap
+  , _txPool :: UtxoMap
   } deriving (Show)
 
-newtype ChainT m a = ChainT { _unChainT :: StateT ChainState m a }
+newtype ChainStateT m a = ChainStateT { _unChainStateT :: StateT ChainState m a }
   deriving (Functor, Applicative, Monad, MonadState ChainState)
 
 -----------------------------------------------------------------------------------------

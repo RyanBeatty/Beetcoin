@@ -4,15 +4,38 @@ module BeetCoin.Blocks
 
 import BeetCoin.Types
   ( Block (..), BlockHeader (..), BlockHash (..), Nonce (..)
-  , ChainT (..))
+  , ChainStateT (..), BlockMap (..), ChainState (..))
 
+import Control.Monad.Identity (Identity (..))
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.State (get)
 import Data.ByteString as BS (ByteString, take, replicate)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
 import Data.Maybe (fromJust)
 import Data.Serialize (encode)
 import Crypto.Hash (hash)
+
+-- TODO: Finish implementing validation.
+processBlock :: Block -> ChainStateT Identity ()
+processBlock block = do
+  is_valid <- validateBlock block
+  case is_valid of
+    False -> undefined
+    True  -> undefined
+
+validateBlock :: Block -> ChainStateT Identity Bool
+validateBlock block = do
+  state <- get
+  case checkDuplicate block (_mainChain state) (_offChain state) of
+    False -> return False
+    True  -> undefined
+
+-- | Check if a block is a duplicate of a block we have already seen.
+-- TODO: Don't just return False here.
+checkDuplicate :: Block -> BlockMap -> BlockMap -> Bool
+checkDuplicate block mainChain offChain = False
+
 
 -- | Hash a block header using sha256.
 hashBlockHeader ::
@@ -50,11 +73,3 @@ mineBlock block_header =
       -- TODO: Using fromJust is probably a bad idea here. Maybe use an error monad or something.
       (nonce, _) = fromJust . find ((==) prefix . snd) . blockHashPrefixes block_header $ target
   in block_header { _nonce = nonce }
-
-validateBlock :: (Monad m) => Block -> ChainT m Bool
-validateBlock block =
-  let block_header = _blockHeader block
-  in validateBlockHeader block_header
-
-validateBlockHeader :: (Monad m) => BlockHeader -> ChainT m Bool
-validateBlockHeader block_header = undefined
