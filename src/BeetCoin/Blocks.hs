@@ -8,7 +8,8 @@ import BeetCoin.Types
 
 import Control.Monad.Identity (Identity (..))
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.State (get)
+import Control.Monad.State (get, gets)
+import Data.Bool (bool)
 import Data.ByteString as BS (ByteString, take, replicate)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
@@ -18,12 +19,10 @@ import Data.Serialize (encode)
 import Crypto.Hash (hash)
 
 -- TODO: Finish implementing validation.
-processBlock :: Block -> ChainStateT Identity ()
+processBlock :: Monad m => Block -> ChainStateT m ()
 processBlock block = do
-  state <- get
-  case validateBlock block (_mainChain state) (_offChain state) of
-    False -> undefined
-    True  -> undefined
+  is_valid <- validateBlock block <$> (gets _mainChain) <*> (gets _offChain)
+  bool (undefined) (addBlock block) is_valid
 
 -- TODO: Add orphan verification stuff.
 validateBlock :: Block -> BlockMap -> BlockMap -> Bool
@@ -42,7 +41,6 @@ validateBlock block main_chain off_chain =
   validateMerkleRootHash block &&
   -- Step 10.
   validateDifficulty block
-
 
 -- | Check if a block is a duplicate of a block we have already seen.
 -- TODO: Don't just return False here.
@@ -63,6 +61,9 @@ validateMerkleRootHash block = True
 
 validateDifficulty :: Block -> Bool
 validateDifficulty block = True
+
+addBlock :: Monad m => Block -> ChainStateT m ()
+addBlock block = undefined
 
 
 -- | Hash a block header using sha256.
