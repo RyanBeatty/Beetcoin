@@ -106,7 +106,8 @@ newtype BlockMap = BlockMap { _unBlockMap :: HM.HashMap BlockHash Block }
   deriving (Show)
 
 data ChainState = ChainState
-  { _blocks :: BlockMap
+  { _mainChain :: BlockMap
+  , _offChain :: BlockMap
   , _utxos :: UtxoMap
   } deriving (Show)
 
