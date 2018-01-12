@@ -28,12 +28,19 @@ processBlock block = do
 -- TODO: Add orphan verification stuff.
 validateBlock :: Block -> BlockMap -> BlockMap -> Bool
 validateBlock block main_chain off_chain =
+  -- Step 2.
   not (checkDuplicate block main_chain off_chain) &&
+  -- Step 3.
   _transactions block /= mempty &&
+  -- Step 4.
   validateBlockHash block &&
+  -- Step 5.
   validateTimeStamp block &&
+  -- Step 6-8.
   validateTransactions block &&
+  -- Step 9.
   validateMerkleRootHash block &&
+  -- Step 10.
   validateDifficulty block
 
 
