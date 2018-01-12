@@ -128,8 +128,9 @@ newtype Amount = Amount { _unAmount :: Word64 }
 
 -- | The version of validation rules a transaction should be validated against.
 -- This might not be necessary in the long term, but its nice to have just in case.
+-- TODO: Remove this.
 data TXVersion = TXVersion
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Represents the hash of a public key. Obtained by hashing the public key of a user
 -- first with sha256 and then with ripemd160.
@@ -155,7 +156,7 @@ data BeetCoinAddress = BeetCoinAddress
 data TxOut = TxOut
   { _amount :: Amount -- ^ The amount of coin in this output this can be spent.
   , _receiverAddress :: BeetCoinAddress -- ^ The recipient of the transaction.
-  } deriving (Show, Generic)
+  } deriving (Show, Eq, Generic)
   
 -- | Represents identifier of an unspent transaction in a transaction input.
 -- Created by double sha256 hashing the transaction.
@@ -198,24 +199,24 @@ mkPubKey point = PubKey $ ECC.PublicKey secp256k1 point
 -- | Represents a ECDSA signature using the secp256k1 curve with SHA256 hashing.
 -- Created by signing all of the transaction inputs and outputs.
 newtype Sig = Sig { _unSig :: ECC.Signature }
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Represents a message that can be signed or used to verify a signature is valid.
 newtype SigMsg = SigMsg { _unSigMsg :: BS.ByteString }
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Represents data needed to claim ownership over coins in a specific output.
 data SigScript = SigScript
   { _pubKey :: PubKey -- ^ The public key of the owner.
   , _sig :: Sig -- ^ The signature used to prove ownership of the private key corresponding to
                 -- ^ the public key.
-  } deriving (Show, Generic)
+  } deriving (Show, Eq, Generic)
 
 -- | Represents an input to a transaction.
 data TxIn = TxIn
   { _prevOutput :: Outpoint -- ^ A specific output of a transaction that will be spent.
   , _sigScript :: SigScript -- ^ Proof of ownership over the coins in |_prevOutput|.
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 data Transaction =
     Transaction
@@ -226,7 +227,7 @@ data Transaction =
   | CoinbaseTransaction 
       { _cbOutputs :: TxOut -- ^ The output of the coinbase transaction containing the
                             -- ^ newly minted awarded to the miner of the block.
-      } deriving (Show)
+      } deriving (Show, Eq)
 
 -- | Represents an unspent amount of coin resulting from the ouptut of a transaction.
 data Utxo = Utxo

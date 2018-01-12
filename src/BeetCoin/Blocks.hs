@@ -13,28 +13,49 @@ import Data.ByteString as BS (ByteString, take, replicate)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
 import Data.Maybe (fromJust)
+import Data.Monoid (mempty)
 import Data.Serialize (encode)
 import Crypto.Hash (hash)
 
 -- TODO: Finish implementing validation.
 processBlock :: Block -> ChainStateT Identity ()
 processBlock block = do
-  is_valid <- validateBlock block
-  case is_valid of
+  state <- get
+  case validateBlock block (_mainChain state) (_offChain state) of
     False -> undefined
     True  -> undefined
 
-validateBlock :: Block -> ChainStateT Identity Bool
-validateBlock block = do
-  state <- get
-  case checkDuplicate block (_mainChain state) (_offChain state) of
-    False -> return False
-    True  -> undefined
+-- TODO: Add orphan verification stuff.
+validateBlock :: Block -> BlockMap -> BlockMap -> Bool
+validateBlock block main_chain off_chain =
+  checkDuplicate block main_chain off_chain &&
+  _transactions block /= mempty &&
+  validateBlockHash block &&
+  validateTimeStamp block &&
+  validateTransactions block &&
+  validateMerkleRootHash block &&
+  validateDifficulty block
+
 
 -- | Check if a block is a duplicate of a block we have already seen.
 -- TODO: Don't just return False here.
 checkDuplicate :: Block -> BlockMap -> BlockMap -> Bool
-checkDuplicate block mainChain offChain = False
+checkDuplicate block main_chain off_chain = False
+
+validateBlockHash :: Block -> Bool
+validateBlockHash = undefined
+
+validateTimeStamp :: Block -> Bool
+validateTimeStamp = undefined
+
+validateTransactions :: Block -> Bool
+validateTransactions = undefined
+
+validateMerkleRootHash :: Block -> Bool
+validateMerkleRootHash = undefined
+
+validateDifficulty :: Block -> Bool
+validateDifficulty = undefined
 
 
 -- | Hash a block header using sha256.
