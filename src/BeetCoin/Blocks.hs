@@ -4,7 +4,8 @@ module BeetCoin.Blocks
 
 import BeetCoin.Types
   ( Block (..), BlockHeader (..), BlockHash (..), Nonce (..)
-  , ChainStateT (..), BlockMap (..), ChainState (..), ChainType (..))
+  , ChainStateT (..), BlockMap (..), ChainState (..), ChainType (..)
+  , UtxoMap (..))
 
 import Control.Monad.Identity (Identity (..))
 import Control.Monad.IO.Class (MonadIO)
@@ -12,11 +13,21 @@ import Control.Monad.State (get, gets, modify)
 import Data.ByteString as BS (ByteString, take, replicate)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
-import qualified Data.Map as HM (insert)
+import qualified Data.Map as HM (insert, singleton, empty)
 import Data.Maybe (fromJust)
 import Data.Monoid (mempty)
 import Data.Serialize (encode)
 import Crypto.Hash (hash)
+
+genesisBlock :: Block
+genesisBlock = undefined
+
+initState :: ChainState
+initState = ChainState
+  { _mainChain = BlockMap . HM.singleton (hashBlockHeader . _blockHeader $ genesisBlock) $ genesisBlock
+  , _sideChain = BlockMap HM.empty
+  , _txPool    = UtxoMap HM.empty
+  }
 
 -- TODO: Finish implementing validation.
 processBlock :: Monad m => Block -> ChainStateT m ()
