@@ -21,14 +21,14 @@ import Crypto.Hash (hash)
 -- TODO: Finish implementing validation.
 processBlock :: Monad m => Block -> ChainStateT m ()
 processBlock block = do
-  is_valid <- validateBlock block <$> (gets _mainChain) <*> (gets _offChain)
+  is_valid <- validateBlock block <$> (gets _mainChain) <*> (gets _sideChain)
   bool (undefined) (addBlock block) is_valid
 
 -- TODO: Add orphan verification stuff.
 validateBlock :: Block -> BlockMap -> BlockMap -> Bool
-validateBlock block main_chain off_chain =
+validateBlock block main_chain side_chain =
   -- Step 2.
-  not (checkDuplicate block main_chain off_chain) &&
+  not (checkDuplicate block main_chain side_chain) &&
   -- Step 3.
   _transactions block /= mempty &&
   -- Step 4.
@@ -43,7 +43,7 @@ validateBlock block main_chain off_chain =
   validateDifficulty block &&
   if addToMainChain block main_chain then
     undefined
-  else if addToOffChain block off_chain then
+  else if addToSideChain block side_chain then
     undefined
   else
     undefined
@@ -51,7 +51,7 @@ validateBlock block main_chain off_chain =
 -- | Check if a block is a duplicate of a block we have already seen.
 -- TODO: Don't just return False here.
 checkDuplicate :: Block -> BlockMap -> BlockMap -> Bool
-checkDuplicate block main_chain off_chain = False
+checkDuplicate block main_chain side_chain = False
 
 validateBlockHash :: Block -> Bool
 validateBlockHash block = True
@@ -69,7 +69,7 @@ validateDifficulty :: Block -> Bool
 validateDifficulty block = True
 
 addToMainChain = undefined
-addToOffChain = undefined
+addToSideChain = undefined
 
 addBlock :: Monad m => Block -> ChainStateT m ()
 addBlock block = undefined
