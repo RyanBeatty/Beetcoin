@@ -81,15 +81,12 @@ addToMainChain block state =
   in state { _mainChain = addBlock main_chain block }
 
 
-
+-- | Add a block to a block map. NOTE: Assumes that the block is not already in the map.
 addBlock :: BlockMap -> Block -> BlockMap
-addBlock chain block = BlockMap $ HM.insert (undefined) block (_unBlockMap chain)
-
+addBlock chain block = BlockMap $ HM.insert (hashBlockHeader . _blockHeader $ block) block (_unBlockMap chain)
 
 -- | Hash a block header using sha256.
-hashBlockHeader ::
-  BlockHeader  -- ^ The block header to hash using sha256.
-  -> BlockHash
+hashBlockHeader :: BlockHeader -> BlockHash
 hashBlockHeader = BlockHash . hash . encode
 
 -- | Lazy list of all possible nonce values.
