@@ -8,7 +8,7 @@ import BeetCoin.Types
 
 import Control.Monad.Identity (Identity (..))
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.State (get, gets)
+import Control.Monad.State (get, gets, modify)
 import Data.ByteString as BS (ByteString, take, replicate)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
@@ -23,7 +23,7 @@ processBlock block = do
   chain_type <- validateBlock block <$> (gets _mainChain) <*> (gets _sideChain)
   case chain_type of
     NoChain   -> rejectBlock
-    MainChain -> addToMainChain
+    MainChain -> modify (addToMainChain block)
     SideChain -> addToSideChain
 
 -- TODO: Add orphan verification stuff.
@@ -67,16 +67,22 @@ validateMerkleRootHash block = True
 validateDifficulty block = True
 
 -- | Validations for adding a block to a specific chain.
-mainChainBlockValidations = undefined
+mainChainBlockValidations block = True
 sideChainBlockValidations = undefined
 orphanChainBlockValidations = undefined
 
 rejectBlock = undefined
-addToMainChain = undefined
 addToSideChain = undefined
 
-addBlock :: Monad m => Block -> ChainStateT m ()
-addBlock block = undefined
+addToMainChain :: Block -> ChainState -> ChainState
+addToMainChain block state = 
+  let main_chain = _mainChain state
+  in state { _mainChain = addBlock main_chain block }
+
+
+
+addBlock :: BlockMap -> Block -> BlockMap
+addBlock chain block = undefined
 
 
 -- | Hash a block header using sha256.
