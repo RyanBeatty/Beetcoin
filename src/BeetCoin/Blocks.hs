@@ -4,12 +4,11 @@ module BeetCoin.Blocks
 
 import BeetCoin.Types
   ( Block (..), BlockHeader (..), BlockHash (..), Nonce (..)
-  , ChainStateT (..), BlockMap (..), ChainState (..))
+  , ChainStateT (..), BlockMap (..), ChainState (..), ChainType (..))
 
 import Control.Monad.Identity (Identity (..))
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.State (get, gets)
-import Data.Bool (bool)
 import Data.ByteString as BS (ByteString, take, replicate)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
@@ -21,14 +20,30 @@ import Crypto.Hash (hash)
 -- TODO: Finish implementing validation.
 processBlock :: Monad m => Block -> ChainStateT m ()
 processBlock block = do
-  is_valid <- validateBlock block <$> (gets _mainChain) <*> (gets _sideChain)
-  bool (undefined) (addBlock block) is_valid
+  chain_type <- validateBlock block <$> (gets _mainChain) <*> (gets _sideChain)
+  case chain_type of
+    NoChain   -> rejectBlock
+    MainChain -> addToMainChain
+    SideChain -> addToSideChain
 
 -- TODO: Add orphan verification stuff.
-validateBlock :: Block -> BlockMap -> BlockMap -> Bool
+validateBlock :: Block -> BlockMap -> BlockMap -> ChainType
 validateBlock block main_chain side_chain =
+  if not (commonBlockValidations block) then
+    NoChain
+  else if mainChainBlockValidations block then
+    MainChain
+  else if sideChainBlockValidations block then
+    SideChain
+  else if orphanChainBlockValidations block then
+    NoChain
+  else
+    NoChain
+
+commonBlockValidations :: Block -> Bool
+commonBlockValidations block =
   -- Step 2.
-  not (checkDuplicate block main_chain side_chain) &&
+  not (checkDuplicate block) &&
   -- Step 3.
   _transactions block /= mempty &&
   -- Step 4.
@@ -40,34 +55,23 @@ validateBlock block main_chain side_chain =
   -- Step 9.
   validateMerkleRootHash block &&
   -- Step 10.
-  validateDifficulty block &&
-  if addToMainChain block main_chain then
-    undefined
-  else if addToSideChain block side_chain then
-    undefined
-  else
-    undefined
+  validateDifficulty block
 
--- | Check if a block is a duplicate of a block we have already seen.
--- TODO: Don't just return False here.
-checkDuplicate :: Block -> BlockMap -> BlockMap -> Bool
-checkDuplicate block main_chain side_chain = False
-
-validateBlockHash :: Block -> Bool
+-- | Bunch of validation functions used in commonBlockValidation.
+-- TODO: Implement all of these.
+checkDuplicate block = False
 validateBlockHash block = True
-
-validateTimeStamp :: Block -> Bool
 validateTimeStamp block = True
-
-validateTransactions :: Block -> Bool
 validateTransactions block = True
-
-validateMerkleRootHash :: Block -> Bool
 validateMerkleRootHash block = True
-
-validateDifficulty :: Block -> Bool
 validateDifficulty block = True
 
+-- | Validations for adding a block to a specific chain.
+mainChainBlockValidations = undefined
+sideChainBlockValidations = undefined
+orphanChainBlockValidations = undefined
+
+rejectBlock = undefined
 addToMainChain = undefined
 addToSideChain = undefined
 

@@ -12,6 +12,7 @@ module BeetCoin.Types
     , PubKeyHash (..)
     , BeetCoinAddress (..)
     , BlockMap (..)
+    , ChainType (..)
     , ChainState (..)
     , ChainStateT (..)
     , UtxoMap (..)
@@ -103,6 +104,7 @@ data Block = Block
   , _transactions :: [Transaction]
   } deriving (Show)
 
+-- | Enumeration of the different chain types a block can belong to.
 data ChainType =
     NoChain
   | MainChain
