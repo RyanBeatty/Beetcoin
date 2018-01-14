@@ -103,6 +103,12 @@ data Block = Block
   , _transactions :: [Transaction]
   } deriving (Show)
 
+data ChainType =
+    NoChain
+  | MainChain
+  | SideChain
+  deriving (Show)
+
 newtype BlockMap = BlockMap { _unBlockMap :: HM.HashMap BlockHash Block }
   deriving (Show)
 

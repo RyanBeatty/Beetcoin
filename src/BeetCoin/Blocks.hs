@@ -40,7 +40,13 @@ validateBlock block main_chain off_chain =
   -- Step 9.
   validateMerkleRootHash block &&
   -- Step 10.
-  validateDifficulty block
+  validateDifficulty block &&
+  if addToMainChain block main_chain then
+    undefined
+  else if addToOffChain block off_chain then
+    undefined
+  else
+    undefined
 
 -- | Check if a block is a duplicate of a block we have already seen.
 -- TODO: Don't just return False here.
@@ -61,6 +67,9 @@ validateMerkleRootHash block = True
 
 validateDifficulty :: Block -> Bool
 validateDifficulty block = True
+
+addToMainChain = undefined
+addToOffChain = undefined
 
 addBlock :: Monad m => Block -> ChainStateT m ()
 addBlock block = undefined
