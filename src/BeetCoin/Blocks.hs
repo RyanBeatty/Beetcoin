@@ -12,6 +12,7 @@ import Control.Monad.State (get, gets, modify)
 import Data.ByteString as BS (ByteString, take, replicate)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
+import qualified Data.Map as HM (insert)
 import Data.Maybe (fromJust)
 import Data.Monoid (mempty)
 import Data.Serialize (encode)
@@ -82,7 +83,7 @@ addToMainChain block state =
 
 
 addBlock :: BlockMap -> Block -> BlockMap
-addBlock chain block = undefined
+addBlock chain block = BlockMap $ HM.insert (undefined) block (_unBlockMap chain)
 
 
 -- | Hash a block header using sha256.

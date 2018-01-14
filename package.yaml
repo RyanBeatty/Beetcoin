@@ -25,6 +25,7 @@ dependencies:
 - bytestring
 - bytestring-conversion
 - cereal
+- containers
 - cryptonite
 - memory
 - mtl

@@ -46,7 +46,7 @@ import qualified Crypto.Number.Serialize as CNS (i2osp, os2ip)
 import Data.ByteArray (ByteArrayAccess, convert)
 import qualified Data.ByteString as BS (ByteString, append, length, take, cons)
 import Data.ByteString.Base58 (bitcoinAlphabet, encodeBase58, decodeBase58)
-import qualified Data.HashMap.Strict as HM (HashMap)
+import qualified Data.Map.Strict as HM (Map)
 import Data.Serialize
   ( Serialize, Get, Putter, Put, put, get, encode, decode
   , runPut, runGet, putByteString, remaining, getByteString
@@ -62,7 +62,7 @@ import Numeric (showHex)
 
 -- ^ The sha256 hash of a block header.
 newtype BlockHash = BlockHash { _unBlockHash :: (Digest SHA256) }
-      deriving (Show, Eq)
+      deriving (Show, Eq, Ord)
 
 -----------------------------------------------------------------------------------------
 -- Time related types.
@@ -111,7 +111,7 @@ data ChainType =
   | SideChain
   deriving (Show)
 
-newtype BlockMap = BlockMap { _unBlockMap :: HM.HashMap BlockHash Block }
+newtype BlockMap = BlockMap { _unBlockMap :: HM.Map BlockHash Block }
   deriving (Show)
 
 data ChainState = ChainState
@@ -244,7 +244,7 @@ data Utxo = Utxo
   } deriving (Show)
 
 -- | Represents all of the unspent coin in the block chain.
-newtype UtxoMap = UtxoMap { _unUtxoMap :: HM.HashMap Outpoint Utxo }
+newtype UtxoMap = UtxoMap { _unUtxoMap :: HM.Map Outpoint Utxo }
   deriving (Show)
 
 -----------------------------------------------------------------------------------------

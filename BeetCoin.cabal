@@ -33,6 +33,7 @@ library
     , bytestring
     , bytestring-conversion
     , cereal
+    , containers
     , cryptonite
     , memory
     , mtl
@@ -59,6 +60,7 @@ executable BeetCoin-exe
     , bytestring
     , bytestring-conversion
     , cereal
+    , containers
     , cryptonite
     , memory
     , mtl
@@ -80,6 +82,7 @@ test-suite BeetCoin-test
     , bytestring
     , bytestring-conversion
     , cereal
+    , containers
     , cryptonite
     , memory
     , mtl
