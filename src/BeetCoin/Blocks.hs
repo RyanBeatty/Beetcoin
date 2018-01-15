@@ -27,8 +27,8 @@ import Crypto.Hash (digestFromByteString)
 genesisBlock :: Block
 genesisBlock = Block
   { _blockHeader = BlockHeader
-    { _previousBlockHash = BlockHash . sha256 . BS.replicate 1000 $ 0x00
-    , _merkleRootHash    = MerkleHash . sha256 . BS.replicate 1000 $ 0x00
+    { _previousBlockHash = BlockHash . sha256 . BS.pack $ [0x00]
+    , _merkleRootHash    = MerkleHash . sha256 . BS.pack $ [0x00]
     , _target            = 0
     , _timestamp         = fromRational $ 1.00
     , _nonce             = Nonce 0
@@ -48,6 +48,7 @@ genesisBlock = Block
   , _transactions = mempty
   }
 
+-- | Initialize a chain state with the genesis block as the first block.
 initChainState :: ChainState
 initChainState = ChainState
   { _mainChain = addBlock (BlockMap HM.empty) genesisBlock
@@ -120,7 +121,9 @@ addToMainChain block state =
 
 -- | Add a block to a block map. NOTE: Assumes that the block is not already in the map.
 addBlock :: BlockMap -> Block -> BlockMap
-addBlock chain block = BlockMap $ HM.insert (hashBlockHeader . _blockHeader $ block) block (_unBlockMap chain)
+addBlock chain block =
+  let block_header_hash = hashBlockHeader . _blockHeader $ block
+  in BlockMap $ HM.insert block_header_hash block (_unBlockMap chain)
 
 -- | Hash a block header using sha256.
 hashBlockHeader :: BlockHeader -> BlockHash
