@@ -103,7 +103,7 @@ data Block = Block
   { _blockHeader :: BlockHeader
   , _coinbase :: Transaction
   , _transactions :: [Transaction]
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 -- | Enumeration of the different chain types a block can belong to.
 data ChainType =
@@ -225,7 +225,7 @@ data SigScript = SigScript
 data TxIn = TxIn
   { _prevOutput :: Outpoint -- ^ A specific output of a transaction that will be spent.
   , _sigScript :: SigScript -- ^ Proof of ownership over the coins in |_prevOutput|.
-  } deriving (Show, Eq)
+  } deriving (Show, Eq, Generic)
 
 data Transaction =
     Transaction
@@ -236,7 +236,7 @@ data Transaction =
   | CoinbaseTransaction 
       { _cbOutputs :: TxOut -- ^ The output of the coinbase transaction containing the
                             -- ^ newly minted awarded to the miner of the block.
-      } deriving (Show, Eq)
+      } deriving (Show, Eq, Generic)
 
 -- | Represents an unspent amount of coin resulting from the ouptut of a transaction.
 data Utxo = Utxo
@@ -272,13 +272,17 @@ getDigest num error_msg = do
 instance Serialize Target
 instance Serialize Nonce
 instance Serialize BlockHeader
+instance Serialize Block
 instance Serialize Amount
 instance Serialize Prefix
 instance Serialize TxOut
 instance Serialize TxIndex
 instance Serialize Outpoint
--- TODO: I think this has bugs because both PubKey and Sig use the remaining function.
 instance Serialize SigScript
+-- TODO: Make sure this is correct.
+instance Serialize TxIn
+-- TODO: Make sure this is correct.
+instance Serialize Transaction
 
 instance Serialize BlockHash where
   put (BlockHash digest) = putDigest digest 
