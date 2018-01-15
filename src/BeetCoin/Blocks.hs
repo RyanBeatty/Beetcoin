@@ -1,25 +1,29 @@
 module BeetCoin.Blocks
     ( genesisBlock
+    , hashBlockHeader
     ) where
 
 import BeetCoin.Types
   ( Block (..), BlockHeader (..), BlockHash (..), Nonce (..)
   , ChainStateT (..), BlockMap (..), ChainState (..), ChainType (..)
-  , UtxoMap (..), MerkleHash (..), Timestamp (..))
+  , UtxoMap (..), MerkleHash (..), Timestamp (..), Transaction (..)
+  , TxOut (..), BeetCoinAddress (..), PubKeyHash (..))
 import BeetCoin.Utils (sha256)
 
 import Control.Monad.Identity (Identity (..))
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.State (get, gets, modify)
-import Data.ByteString as BS (ByteString, take, replicate)
+import Data.ByteString as BS (ByteString, take, replicate, pack)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
 import qualified Data.Map as HM (insert, singleton, empty)
 import Data.Maybe (fromJust)
 import Data.Monoid (mempty)
 import Data.Serialize (encode)
-import Crypto.Hash (hash)
+import Crypto.Hash (digestFromByteString)
 
+-- | Represents the first block in the mainchain. Mostly just put random values for all the fields right now.
+-- TODO: Mine a valid genesis block.
 genesisBlock :: Block
 genesisBlock = Block
   { _blockHeader = BlockHeader
@@ -29,7 +33,18 @@ genesisBlock = Block
     , _timestamp         = fromRational $ 1.00
     , _nonce             = Nonce 0
     }
-  , _coinbase     = undefined
+  , _coinbase     = CoinbaseTransaction
+    { _cbOutputs = TxOut
+      { _amount          = 0
+      , _receiverAddress = BeetCoinAddress . PubKeyHash . fromJust . digestFromByteString . BS.pack $
+        [ 0x04, 0x50, 0x86, 0x3A, 0xD6, 0x4A, 0x87, 0xAE, 0x8A, 0x2F, 0xE8, 0x3C, 0x1A, 0xF1, 0xA8, 0x40
+        , 0x3C, 0xB5, 0x3F, 0x53, 0xE4, 0x86, 0xD8, 0x51, 0x1D, 0xAD, 0x8A, 0x04, 0x88, 0x7E, 0x5B, 0x23
+        , 0x52, 0x2C, 0xD4, 0x70, 0x24, 0x34, 0x53, 0xA2, 0x99, 0xFA, 0x9E, 0x77, 0x23, 0x77, 0x16, 0x10
+        , 0x3A, 0xBC, 0x11, 0xA1, 0xDF, 0x38, 0x85, 0x5E, 0xD6, 0xF2, 0xEE, 0x18, 0x7E, 0x9C, 0x58, 0x2B
+        , 0xA6
+        ]
+      }
+    }
   , _transactions = mempty
   }
 
@@ -109,7 +124,7 @@ addBlock chain block = BlockMap $ HM.insert (hashBlockHeader . _blockHeader $ bl
 
 -- | Hash a block header using sha256.
 hashBlockHeader :: BlockHeader -> BlockHash
-hashBlockHeader = BlockHash . hash . encode
+hashBlockHeader = BlockHash . sha256 . encode
 
 -- | Lazy list of all possible nonce values.
 -- TODO: check if this is the right bounds. Also see if this gets garbage collected ever.
