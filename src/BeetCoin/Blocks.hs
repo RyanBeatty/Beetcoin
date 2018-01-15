@@ -16,7 +16,7 @@ import Control.Monad.State (get, gets, modify)
 import Data.ByteString as BS (ByteString, take, replicate, pack)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
-import qualified Data.Map as HM (insert, singleton, empty)
+import qualified Data.Map as HM (insert, empty)
 import Data.Maybe (fromJust)
 import Data.Monoid (mempty)
 import Data.Serialize (encode)
@@ -50,7 +50,7 @@ genesisBlock = Block
 
 initChainState :: ChainState
 initChainState = ChainState
-  { _mainChain = BlockMap . HM.singleton (hashBlockHeader . _blockHeader $ genesisBlock) $ genesisBlock
+  { _mainChain = addBlock (BlockMap HM.empty) genesisBlock
   , _sideChain = BlockMap HM.empty
   , _txPool    = UtxoMap HM.empty
   }
