@@ -12,7 +12,7 @@ import BeetCoin.Utils (sha256)
 
 import Control.Monad.Identity (Identity (..))
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.State (get, gets, modify)
+import Control.Monad.State (get, gets, modify, put)
 import Data.ByteString as BS (ByteString, take, replicate, pack)
 import Data.ByteString.Conversion (toByteString')
 import Data.List (find)
@@ -49,8 +49,8 @@ genesisBlock = Block
   }
 
 -- | Initialize a chain state with the genesis block as the first block.
-mkChainState :: ChainState
-mkChainState = ChainState
+mkChainStateT :: Monad m => ChainStateT m ()
+mkChainStateT = put $ ChainState
   { _mainChain = addBlock (BlockMap HM.empty) genesisBlock
   , _sideChain = BlockMap HM.empty
   , _txPool    = UtxoMap HM.empty
