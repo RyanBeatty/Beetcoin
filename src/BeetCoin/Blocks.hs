@@ -5,6 +5,7 @@ module BeetCoin.Blocks
     , processBlock
     ) where
 
+import BeetCoin.Transaction (validateTransactions)
 import BeetCoin.Types
   ( Block (..), BlockHeader (..), BlockHash (..), Nonce (..)
   , ChainStateT (..), BlockMap (..), ChainState (..), ChainType (..)
@@ -90,7 +91,7 @@ commonBlockValidations block =
   -- Step 5.
   validateTimeStamp block &&
   -- Step 6-8.
-  validateTransactions block &&
+  validateTxList block &&
   -- Step 9.
   validateMerkleRootHash block &&
   -- Step 10.
@@ -102,7 +103,7 @@ checkDuplicate block = False
 nonEmptyTxList block = True -- _transactions block /= mempty
 validateBlockHash block = True
 validateTimeStamp block = True
-validateTransactions block = True
+validateTxList block = validateTransactions
 validateMerkleRootHash block = True
 validateDifficulty block = True
 

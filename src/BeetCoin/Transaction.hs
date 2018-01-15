@@ -1,5 +1,6 @@
 module BeetCoin.Transaction 
-  ( verifyPubKey
+  ( validateTransactions
+  , verifyPubKey
   , verifySig
   ) where
 
@@ -14,6 +15,8 @@ import qualified Crypto.PubKey.ECC.ECDSA as ECC (verify)
 import qualified Data.ByteString as BS (ByteString)
 import qualified Data.HashMap.Strict as HM (lookup)
 import Data.Serialize (encode)
+
+validateTransactions = True
 
 
 verifyTx :: Transaction -> UtxoMap -> Bool
