@@ -20,10 +20,20 @@ import Data.Serialize (encode)
 import Crypto.Hash (hash)
 
 genesisBlock :: Block
-genesisBlock = undefined
+genesisBlock = Block
+  { _blockHeader = BlockHeader
+    { _previousBlockHash = undefined
+    , _merkleRootHash    = undefined
+    , _target            = undefined
+    , _timestamp         = undefined
+    , _nonce             = undefined
+    }
+  , _coinbase     = undefined
+  , _transactions = mempty
+  }
 
-initState :: ChainState
-initState = ChainState
+initChainState :: ChainState
+initChainState = ChainState
   { _mainChain = BlockMap . HM.singleton (hashBlockHeader . _blockHeader $ genesisBlock) $ genesisBlock
   , _sideChain = BlockMap HM.empty
   , _txPool    = UtxoMap HM.empty
