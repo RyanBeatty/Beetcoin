@@ -51,11 +51,12 @@ genesisBlock = Block
 
 -- | Initialize a chain state with the genesis block as the first block.
 mkChainState :: ChainState
-mkChainState = ChainState
-  { _mainChain = addBlock (BlockMap HM.empty) genesisBlock
-  , _sideChain = BlockMap HM.empty
-  , _txPool    = UtxoMap HM.empty
-  }
+mkChainState =
+  addToMainChain genesisBlock (ChainState
+    { _mainChain = BlockMap HM.empty
+    , _sideChain = BlockMap HM.empty
+    , _txPool    = UtxoMap HM.empty
+    })
 
 -- TODO: Finish implementing validation.
 processBlock :: Monad m => Block -> ChainStateT m ()
