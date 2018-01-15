@@ -49,8 +49,8 @@ genesisBlock = Block
   }
 
 -- | Initialize a chain state with the genesis block as the first block.
-initChainState :: ChainState
-initChainState = ChainState
+mkChainState :: ChainState
+mkChainState = ChainState
   { _mainChain = addBlock (BlockMap HM.empty) genesisBlock
   , _sideChain = BlockMap HM.empty
   , _txPool    = UtxoMap HM.empty
