@@ -1,1 +1,1 @@
-# TribeCoin
+# BeetCoin
