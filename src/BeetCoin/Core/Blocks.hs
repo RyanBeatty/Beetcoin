@@ -131,6 +131,9 @@ addBlock chain block =
 hashBlockHeader :: BlockHeader -> BlockHash
 hashBlockHeader = BlockHash . sha256 . encode
 
+--------------------------------------------------------------------------------------------
+-- TODO: Possibliy delete everything under here.
+
 -- | Lazy list of all possible nonce values.
 -- TODO: check if this is the right bounds. Also see if this gets garbage collected ever.
 -- If this is strictly evaluated and then sticks around in memory, We'll run out of memory real quick.
