@@ -10,6 +10,7 @@ module BeetCoin.Types
     , Amount (..)
     , TXVersion (..)
     , PubKeyHash (..)
+    , MerkleHash (..)
     , BeetCoinAddress (..)
     , BlockMap (..)
     , ChainType (..)

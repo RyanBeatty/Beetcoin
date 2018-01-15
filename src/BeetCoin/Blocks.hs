@@ -1,11 +1,12 @@
 module BeetCoin.Blocks
-    ( mineBlock
+    ( genesisBlock
     ) where
 
 import BeetCoin.Types
   ( Block (..), BlockHeader (..), BlockHash (..), Nonce (..)
   , ChainStateT (..), BlockMap (..), ChainState (..), ChainType (..)
-  , UtxoMap (..))
+  , UtxoMap (..), MerkleHash (..), Timestamp (..))
+import BeetCoin.Utils (sha256)
 
 import Control.Monad.Identity (Identity (..))
 import Control.Monad.IO.Class (MonadIO)
@@ -22,11 +23,11 @@ import Crypto.Hash (hash)
 genesisBlock :: Block
 genesisBlock = Block
   { _blockHeader = BlockHeader
-    { _previousBlockHash = undefined
-    , _merkleRootHash    = undefined
-    , _target            = undefined
-    , _timestamp         = undefined
-    , _nonce             = undefined
+    { _previousBlockHash = BlockHash . sha256 . BS.replicate 1000 $ 0x00
+    , _merkleRootHash    = MerkleHash . sha256 . BS.replicate 1000 $ 0x00
+    , _target            = 0
+    , _timestamp         = fromRational $ 1.00
+    , _nonce             = Nonce 0
     }
   , _coinbase     = undefined
   , _transactions = mempty
