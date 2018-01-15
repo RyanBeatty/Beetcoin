@@ -41,11 +41,11 @@ library
     , unix-time
     , unordered-containers
   exposed-modules:
-      BeetCoin.Blocks
-      BeetCoin.Time
-      BeetCoin.Transaction
-      BeetCoin.Types
-      BeetCoin.Utils
+      BeetCoin.Core.Blocks
+      BeetCoin.Core.Time
+      BeetCoin.Core.Transaction
+      BeetCoin.Core.Types
+      BeetCoin.Core.Utils
   default-language: Haskell2010
 
 executable BeetCoin-exe
@@ -94,8 +94,8 @@ test-suite BeetCoin-test
     , tasty-hspec
     , tasty-quickcheck
   other-modules:
-      BeetCoin.Arbitrary
-      BeetCoin.TestUtils
-      BeetCoin.TransactionTest
-      BeetCoin.TypesTest
+      BeetCoin.Core.Arbitrary
+      BeetCoin.Core.TestUtils
+      BeetCoin.Core.TransactionTest
+      BeetCoin.Core.TypesTest
   default-language: Haskell2010

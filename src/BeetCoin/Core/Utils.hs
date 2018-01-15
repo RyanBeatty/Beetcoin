@@ -1,4 +1,4 @@
-module BeetCoin.Utils
+module BeetCoin.Core.Utils
   ( sha256
   , ripemd160
   ) where

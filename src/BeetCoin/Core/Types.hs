@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-}
-module BeetCoin.Types
+module BeetCoin.Core.Types
     ( BlockHash (..)
     , Timestamp (..)
     , TimestampDiff (..)

@@ -1,6 +1,6 @@
-module BeetCoin.Arbitrary where
+module BeetCoin.Core.Arbitrary where
 
-import BeetCoin.Types
+import BeetCoin.Core.Types
 
 import Crypto.Hash (SHA256 (..), digestFromByteString, hashWith)
 import Crypto.PubKey.ECC.DH (calculatePublic)

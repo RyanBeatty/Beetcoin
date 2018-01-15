@@ -1,7 +1,7 @@
 -- | Contains utility functions and definitions used throughout testing code.
-module BeetCoin.TestUtils where
+module BeetCoin.Core.TestUtils where
 
-import BeetCoin.Types
+import BeetCoin.Core.Types
 
 import Crypto.Hash (digestFromByteString)
 import Crypto.PubKey.ECC.ECDSA (PublicKey (..), PrivateKey (..), Signature (..))

@@ -1,10 +1,10 @@
-module BeetCoin.TransactionTest where
+module BeetCoin.Core.TransactionTest where
 
-import BeetCoin.Transaction
-import BeetCoin.Types (PubKey (..))
+import BeetCoin.Core.Transaction
+import BeetCoin.Core.Types (PubKey (..))
 
-import BeetCoin.Arbitrary (RandomPubKeyHash (..))
-import BeetCoin.TestUtils (parsedPubKey, parsedPubKeyHash, parsedSig, parsedSigMsg)
+import BeetCoin.Core.Arbitrary (RandomPubKeyHash (..))
+import BeetCoin.Core.TestUtils (parsedPubKey, parsedPubKeyHash, parsedSig, parsedSigMsg)
 
 import Test.Tasty.Hspec (Spec, it, describe)
 import Test.Tasty.QuickCheck (Property, forAll, arbitrary, suchThat)

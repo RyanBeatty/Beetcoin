@@ -1,7 +1,7 @@
-module BeetCoin.TypesTest where
+module BeetCoin.Core.TypesTest where
 
-import BeetCoin.Types
-import BeetCoin.TestUtils
+import BeetCoin.Core.Types
+import BeetCoin.Core.TestUtils
 
 import Crypto.Hash (digestFromByteString)
 import Crypto.Number.Serialize (i2ospOf)

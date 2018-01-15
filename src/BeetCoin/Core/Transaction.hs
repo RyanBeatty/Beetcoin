@@ -1,14 +1,14 @@
-module BeetCoin.Transaction 
+module BeetCoin.Core.Transaction 
   ( validateTransactions
   , verifyPubKey
   , verifySig
   ) where
 
-import BeetCoin.Types
+import BeetCoin.Core.Types
   ( UtxoMap (..), Transaction (..), PubKeyHash (..), SigScript (..), SigMsg (..), PubKey (..), Sig (..)
   , Outpoint (..), TxOut (..), Amount (..), TxIn (..), Utxo (..)
   )
-import BeetCoin.Utils (sha256, ripemd160)
+import BeetCoin.Core.Utils (sha256, ripemd160)
 
 import Crypto.Hash (SHA256 (..))
 import qualified Crypto.PubKey.ECC.ECDSA as ECC (verify)

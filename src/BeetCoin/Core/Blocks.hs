@@ -1,17 +1,17 @@
-module BeetCoin.Blocks
+module BeetCoin.Core.Blocks
     ( genesisBlock
     , hashBlockHeader
     , mkChainState
     , processBlock
     ) where
 
-import BeetCoin.Transaction (validateTransactions)
-import BeetCoin.Types
+import BeetCoin.Core.Transaction (validateTransactions)
+import BeetCoin.Core.Types
   ( Block (..), BlockHeader (..), BlockHash (..), Nonce (..)
   , ChainStateT (..), BlockMap (..), ChainState (..), ChainType (..)
   , UtxoMap (..), MerkleHash (..), Timestamp (..), Transaction (..)
   , TxOut (..), BeetCoinAddress (..), PubKeyHash (..))
-import BeetCoin.Utils (sha256)
+import BeetCoin.Core.Utils (sha256)
 
 import Control.Monad.Identity (Identity (..))
 import Control.Monad.IO.Class (MonadIO)
