@@ -23,7 +23,7 @@ initChainState blocks =
 
 main :: IO ()
 main = do
-  let filepath = "~/beetcoin-blocks"
+  let filepath = "beetcoin-blocks"
   putStrLn $ "Initializing ChainState from File: " ++ filepath
   result <- runExceptT (getBlocks filepath >>= return . initChainState)
   case result of
