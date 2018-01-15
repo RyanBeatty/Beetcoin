@@ -42,7 +42,6 @@ library
     , unordered-containers
   exposed-modules:
       BeetCoin.Blocks
-      BeetCoin.Lib
       BeetCoin.Time
       BeetCoin.Transaction
       BeetCoin.Types
