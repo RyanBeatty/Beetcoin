@@ -4,18 +4,19 @@ import qualified Data.ByteString as BS (ByteString (..))
 import qualified Data.ByteString.Char8 as BS8 (pack)
 import Network.Transport
   ( Transport (..), EndPoint (..), Reliability (..), Connection (..), EndPointAddress (..)
-  , defaultConnectHints
+  , Event (..), TransportError (..), ConnectErrorCode (..), defaultConnectHints
   )
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
 data Node = Node
-  { _transport :: Transport
-  , _endpoint :: EndPoint
-  , _closeNode :: IO ()
+  { _address :: EndPointAddress
+  , _epoll :: IO (Event) -- ^ Blocking wait for IO events.
+  , _connect :: EndPointAddress -> IO (Either (TransportError ConnectErrorCode) Connection)
+  , _closeNode :: IO () -- ^ Shutdown the Node.
   }
 
 instance Show Node where
-  show (Node _ endpoint _) = "Node: " ++ (show . address $ endpoint)
+  show node = "Node: " ++ (show . _address $ node)
 
 makeEndPointAddress :: String -> String -> EndPointAddress
 makeEndPointAddress host port = EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
@@ -38,11 +39,14 @@ makeNode :: String -> String -> IO (Node)
 makeNode host port = do
   transport <- makeBeetCoinTransport host port
   endpoint <- makeBeetCoinEndPoint transport
-  return $ Node transport endpoint (closeEndPoint endpoint >> closeTransport transport)
+  return $ Node (address endpoint)
+                (receive endpoint)
+                (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
+                (closeEndPoint endpoint >> closeTransport transport)
 
 connectToNode :: Node -> EndPointAddress -> IO (Connection)
 connectToNode node peer_address = do
-  conn <- connect (_endpoint node) peer_address ReliableOrdered defaultConnectHints
+  conn <- _connect node peer_address
   case conn of
     Left _      -> undefined
     Right conn' -> return conn'
