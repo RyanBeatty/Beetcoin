@@ -6,7 +6,11 @@ import Network.Transport.TCP (createTransport, defaultTCPParameters)
 data Node = Node
   { _transport :: Transport
   , _endpoint :: EndPoint
+  , _closeNode :: IO ()
   }
+
+instance Show Node where
+  show (Node _ endpoint _) = "Node: " ++ (show . address $ endpoint) 
 
 makeBeetCoinTransport :: String -> String -> IO (Transport)
 makeBeetCoinTransport host port = do
@@ -26,7 +30,7 @@ makeNode :: String -> String -> IO (Node)
 makeNode host port = do
   transport <- makeBeetCoinTransport host port
   endpoint <- makeBeetCoinEndPoint transport
-  return $ Node transport endpoint
+  return $ Node transport endpoint (closeEndPoint endpoint >> closeTransport transport)
 
 setupNetwork :: IO ()
 setupNetwork = undefined
