@@ -6,6 +6,7 @@ import Network.Transport
   ( Transport (..), EndPoint (..), Reliability (..), Connection (..), EndPointAddress (..)
   , Event (..), TransportError (..), ConnectErrorCode (..), defaultConnectHints
   )
+import Data.Serialize (Serialize, encode)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
 data Node = Node
@@ -57,6 +58,13 @@ sendMessage conn msg = do
   case result of
     Left _  -> undefined
     Right _ -> return ()
+
+sendStuff :: Serialize a => Connection -> [a] -> IO ()
+sendStuff conn msgs = do
+  result <- send conn (encode <$> msgs)
+  case result of
+    Left _  -> undefined
+    Right _ -> return () 
     
 
 setupNetwork :: IO ()
