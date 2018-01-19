@@ -41,7 +41,6 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps: 
   [ base58-bytestring-0.1.0
-  , distributed-process-0.7.3
   , secp256k1-0.5.2
   ]
 

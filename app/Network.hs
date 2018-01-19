@@ -2,8 +2,6 @@ module Network where
 
 import Network.Transport (Transport (..), EndPoint (..))
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
--- import Control.Distributed.Process (liftIO, getSelfPid)
--- import Control.Distributed.Process.Node (initRemoteTable, runProcess, newLocalNode)
 
 data Node = Node
   { _transport :: Transport

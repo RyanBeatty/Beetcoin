@@ -27,7 +27,6 @@ dependencies:
 - cereal
 - containers
 - cryptonite
-- distributed-process
 - memory
 - mtl
 - network-transport

@@ -35,7 +35,6 @@ library
     , cereal
     , containers
     , cryptonite
-    , distributed-process
     , memory
     , mtl
     , network-transport
@@ -64,7 +63,6 @@ executable BeetCoin-exe
     , cereal
     , containers
     , cryptonite
-    , distributed-process
     , memory
     , mtl
     , network-transport
@@ -91,7 +89,6 @@ test-suite BeetCoin-test
     , cereal
     , containers
     , cryptonite
-    , distributed-process
     , memory
     , mtl
     , network-transport
