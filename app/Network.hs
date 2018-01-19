@@ -9,9 +9,9 @@ import Network.Transport
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
 data Node = Node
-  { _address :: EndPointAddress
+  { _address :: EndPointAddress -- ^ The address of this Node.
   , _epoll :: IO (Event) -- ^ Blocking wait for IO events.
-  , _connect :: EndPointAddress -> IO (Either (TransportError ConnectErrorCode) Connection)
+  , _connect :: EndPointAddress -> IO (Either (TransportError ConnectErrorCode) Connection) -- ^ Establish connection to another Node.
   , _closeNode :: IO () -- ^ Shutdown the Node.
   }
 
