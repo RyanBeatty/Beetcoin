@@ -27,8 +27,11 @@ dependencies:
 - cereal
 - containers
 - cryptonite
+- distributed-process
 - memory
 - mtl
+- network-transport
+- network-transport-tcp
 - time
 - unix-time
 - unordered-containers
