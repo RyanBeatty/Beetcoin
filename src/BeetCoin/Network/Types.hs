@@ -1,11 +1,14 @@
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveAnyClass, DeriveGeneric #-}
 module BeetCoin.Network.Types
   ( NodeAddress (..)
+  , Message (..)
   , NodeState (..)
   , Node (..)
   ) where
 
 import Control.Monad.State.Class (MonadState)
+import Data.Serialize (Serialize)
+import GHC.Generics (Generic)
 import Network.Transport
   ( Transport (..), EndPoint (..), Reliability (..), Connection (..), EndPointAddress (..)
   , Event (..), TransportError (..), ConnectErrorCode (..), SendErrorCode (..)
@@ -16,6 +19,9 @@ import Network.Transport
 -- Takes the form host:port:0.
 newtype NodeAddress = NodeAddress { _unNodeAddress :: EndPointAddress }
   deriving (Show, Ord, Eq)
+
+data Message = Message
+  deriving (Show, Generic)
 
 data SendError =
     SendError (TransportError SendErrorCode)
@@ -37,3 +43,5 @@ data Node = Node
 
 instance Show Node where
   show node = "Node: " ++ (show . _address $ node)
+
+instance Serialize Message

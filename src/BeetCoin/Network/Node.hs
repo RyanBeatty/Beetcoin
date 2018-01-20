@@ -1,6 +1,6 @@
 module BeetCoin.Network.Node where
 
-import BeetCoin.Network.Types (Node (..), NodeAddress (..))
+import BeetCoin.Network.Types (Node (..), NodeAddress (..), Message (..))
 
 import Control.Monad (forever)
 import qualified Data.ByteString as BS (ByteString (..))
@@ -9,9 +9,9 @@ import Network.Transport
   ( Transport (..), EndPoint (..), Reliability (..), Connection (..), EndPointAddress (..)
   , Event (..), TransportError (..), ConnectErrorCode (..), defaultConnectHints
   )
-import Data.Serialize (Serialize, encode)
-import Network.Transport.TCP (createTransport, defaultTCPParameters)
-      
+import Data.Either (rights)
+import Data.Serialize (Serialize, encode, decode)
+import Network.Transport.TCP (createTransport, defaultTCPParameters)      
       
 mkNodeAddress :: String -> String -> NodeAddress
 mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
@@ -66,11 +66,16 @@ sendStuff conn msgs = do
 
 runNode :: Node -> IO ()
 runNode node = forever $ do
-  msgs <- receiveMsgs node
+  msgs <- receiveMessages node
   let responses = handleMsgs msgs
   sendMsgs node responses
 
-receiveMsgs = undefined
+-- NOTE: This only works once a connection has been established to another node.
+receiveMessages :: Node -> IO ([Message])
+receiveMessages node = do
+  Received conn_id raw_msgs <- _epoll node
+  return . rights $ (decode <$> raw_msgs)
+
 handleMsgs = undefined
 sendMsgs = undefined
 
