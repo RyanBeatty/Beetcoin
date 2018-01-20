@@ -67,7 +67,7 @@ sendStuff conn msgs = do
 runNode :: Node -> IO ()
 runNode node = forever $ do
   letters <- receiveLetters node
-  let responses = handleLetters letters
+  let responses = handLetters letters
   sendLetters node responses
 
 -- NOTE: This only works once a connection has been established to another node.
@@ -76,8 +76,10 @@ receiveLetters node = do
   Received conn_id raw_msgs <- _epoll node
   return . rights $ (decode <$> raw_msgs)
 
-handleLetters = undefined
-sendLetters = undefined
+handLetters = undefined
+
+sendLetters :: Node -> [Letters] -> IO ()
+sendLetters node letters = undefined
 
     
 
