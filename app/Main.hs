@@ -1,7 +1,5 @@
 module Main where
 
-import Network
-
 import BeetCoin.Core.Blocks (mkChainState, processBlock)
 import BeetCoin.Core.Types (ChainStateT (..), ChainState, Block)
 
@@ -25,12 +23,9 @@ initChainState blocks =
 
 main :: IO ()
 main = do
-  if True then
-    setupNetwork
-  else do
-    let filepath = "beetcoin-blocks"
-    putStrLn $ "Initializing ChainState from File: " ++ filepath
-    result <- runExceptT (getBlocks filepath >>= return . initChainState)
-    case result of
-      Left msg    -> putStrLn $ "Failed to Initialize ChainState: " ++ msg
-      Right state -> putStrLn $ "Initialized ChainState: " ++ (show state)
+  let filepath = "beetcoin-blocks"
+  putStrLn $ "Initializing ChainState from File: " ++ filepath
+  result <- runExceptT (getBlocks filepath >>= return . initChainState)
+  case result of
+    Left msg    -> putStrLn $ "Failed to Initialize ChainState: " ++ msg
+    Right state -> putStrLn $ "Initialized ChainState: " ++ (show state)

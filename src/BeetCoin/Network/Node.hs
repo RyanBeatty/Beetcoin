@@ -1,4 +1,6 @@
-module Network where
+module BeetCoin.Network.Node where
+
+import BeetCoin.Network.Types (Node (..), NodeAddress (..))
 
 import qualified Data.ByteString as BS (ByteString (..))
 import qualified Data.ByteString.Char8 as BS8 (pack)
@@ -8,31 +10,17 @@ import Network.Transport
   )
 import Data.Serialize (Serialize, encode)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
-
--- | Unique identifier for a node. Addresses are used to connect to nodes.
--- Takes the form host:port:0.
-newtype NodeAddress = NodeAddress { _unNodeAddress :: EndPointAddress }
-  deriving (Show, Ord, Eq)
-
-data Node = Node
-  { _address :: NodeAddress -- ^ The address of this Node.
-  , _epoll :: IO (Event) -- ^ Blocking wait for IO events.
-  , _connect :: EndPointAddress -> IO (Either (TransportError ConnectErrorCode) Connection) -- ^ Establish connection to another Node.
-  , _closeNode :: IO () -- ^ Shutdown the Node.
-  }
-
-instance Show Node where
-  show node = "Node: " ++ (show . _address $ node)
-
+      
+      
 mkNodeAddress :: String -> String -> NodeAddress
 mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
 
 mkNode :: Transport -> EndPoint -> Node
 mkNode transport endpoint =
   Node (NodeAddress . address $ endpoint)
-       (receive endpoint)
-       (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
-       (closeEndPoint endpoint >> closeTransport transport)
+        (receive endpoint)
+        (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
+        (closeEndPoint endpoint >> closeTransport transport)
 
 createBeetCoinTransport :: String -> String -> IO (Transport)
 createBeetCoinTransport host port = do
@@ -78,3 +66,4 @@ sendStuff conn msgs = do
 
 setupNetwork :: IO ()
 setupNetwork = undefined
+      

@@ -48,6 +48,8 @@ library
       BeetCoin.Core.Transaction
       BeetCoin.Core.Types
       BeetCoin.Core.Utils
+      BeetCoin.Network.Node
+      BeetCoin.Network.Types
   default-language: Haskell2010
 
 executable BeetCoin-exe
@@ -71,8 +73,6 @@ executable BeetCoin-exe
     , unix-time
     , unordered-containers
     , BeetCoin
-  other-modules:
-      Network
   default-language: Haskell2010
 
 test-suite BeetCoin-test
