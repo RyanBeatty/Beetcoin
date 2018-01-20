@@ -2,6 +2,7 @@ module BeetCoin.Network.Node where
 
 import BeetCoin.Network.Types (Node (..), NodeAddress (..))
 
+import Control.Monad (forever)
 import qualified Data.ByteString as BS (ByteString (..))
 import qualified Data.ByteString.Char8 as BS8 (pack)
 import Network.Transport
@@ -61,7 +62,18 @@ sendStuff conn msgs = do
   result <- send conn (encode <$> msgs)
   case result of
     Left _  -> undefined
-    Right _ -> return () 
+    Right _ -> return ()
+
+runNode :: Node -> IO ()
+runNode node = forever $ do
+  msgs <- receiveMsgs node
+  let responses = handleMsgs msgs
+  sendMsgs node responses
+
+receiveMsgs = undefined
+handleMsgs = undefined
+sendMsgs = undefined
+
     
 
 setupSomeNodes :: IO ((Node, Connection), (Node, Connection))
