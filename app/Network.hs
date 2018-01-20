@@ -9,8 +9,13 @@ import Network.Transport
 import Data.Serialize (Serialize, encode)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
+-- | Unique identifier for a node. Addresses are used to connect to nodes.
+-- Takes the form host:port:0.
+newtype NodeAddress = NodeAddress { _unNodeAddress :: EndPointAddress }
+  deriving (Show, Ord, Eq)
+
 data Node = Node
-  { _address :: EndPointAddress -- ^ The address of this Node.
+  { _address :: NodeAddress -- ^ The address of this Node.
   , _epoll :: IO (Event) -- ^ Blocking wait for IO events.
   , _connect :: EndPointAddress -> IO (Either (TransportError ConnectErrorCode) Connection) -- ^ Establish connection to another Node.
   , _closeNode :: IO () -- ^ Shutdown the Node.
@@ -19,18 +24,25 @@ data Node = Node
 instance Show Node where
   show node = "Node: " ++ (show . _address $ node)
 
-makeEndPointAddress :: String -> String -> EndPointAddress
-makeEndPointAddress host port = EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
+mkNodeAddress :: String -> String -> NodeAddress
+mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
 
-makeBeetCoinTransport :: String -> String -> IO (Transport)
-makeBeetCoinTransport host port = do
+mkNode :: Transport -> EndPoint -> Node
+mkNode transport endpoint =
+  Node (NodeAddress . address $ endpoint)
+       (receive endpoint)
+       (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
+       (closeEndPoint endpoint >> closeTransport transport)
+
+createBeetCoinTransport :: String -> String -> IO (Transport)
+createBeetCoinTransport host port = do
   transport <- createTransport host port defaultTCPParameters
   case transport of
     Left _  -> undefined
     Right t -> return t 
 
-makeBeetCoinEndPoint :: Transport -> IO (EndPoint)
-makeBeetCoinEndPoint transport = do
+createBeetCoinEndPoint :: Transport -> IO (EndPoint)
+createBeetCoinEndPoint transport = do
   endpoint <- newEndPoint transport
   case endpoint of
     Left _  -> undefined
@@ -38,12 +50,9 @@ makeBeetCoinEndPoint transport = do
 
 makeNode :: String -> String -> IO (Node)
 makeNode host port = do
-  transport <- makeBeetCoinTransport host port
-  endpoint <- makeBeetCoinEndPoint transport
-  return $ Node (address endpoint)
-                (receive endpoint)
-                (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
-                (closeEndPoint endpoint >> closeTransport transport)
+  transport <- createBeetCoinTransport host port
+  endpoint <- createBeetCoinEndPoint transport
+  return $ mkNode transport endpoint
 
 connectToNode :: Node -> EndPointAddress -> IO (Connection)
 connectToNode node peer_address = do
