@@ -18,9 +18,9 @@ mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":"
 mkNode :: Transport -> EndPoint -> Node
 mkNode transport endpoint =
   Node (NodeAddress . address $ endpoint)
-        (receive endpoint)
-        (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
-        (closeEndPoint endpoint >> closeTransport transport)
+       (receive endpoint)
+       (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
+       (closeEndPoint endpoint >> closeTransport transport)
 
 createBeetCoinTransport :: String -> String -> IO (Transport)
 createBeetCoinTransport host port = do
@@ -36,15 +36,15 @@ createBeetCoinEndPoint transport = do
     Left _  -> undefined
     Right e -> return e
 
-makeNode :: String -> String -> IO (Node)
-makeNode host port = do
+createNode :: String -> String -> IO (Node)
+createNode host port = do
   transport <- createBeetCoinTransport host port
   endpoint <- createBeetCoinEndPoint transport
   return $ mkNode transport endpoint
 
-connectToNode :: Node -> EndPointAddress -> IO (Connection)
+connectToNode :: Node -> NodeAddress -> IO (Connection)
 connectToNode node peer_address = do
-  conn <- _connect node peer_address
+  conn <- _connect node (_unNodeAddress peer_address)
   case conn of
     Left _      -> undefined
     Right conn' -> return conn'
@@ -63,6 +63,14 @@ sendStuff conn msgs = do
     Left _  -> undefined
     Right _ -> return () 
     
+
+setupSomeNodes :: IO ((Node, Connection), (Node, Connection))
+setupSomeNodes = do
+  n1 <- createNode "localhost" "3939"
+  n2 <- createNode "localhost" "4000"
+  c1 <- connectToNode n1 (_address n2)
+  c2 <- connectToNode n2 (_address n1)
+  return ((n1, c1), (n2, c2))
 
 setupNetwork :: IO ()
 setupNetwork = undefined
