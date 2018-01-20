@@ -2,12 +2,13 @@
 module BeetCoin.Network.Types
   ( NodeAddress (..)
   , Message (..)
+  , Letter (..)
   , NodeState (..)
   , Node (..)
   ) where
 
 import Control.Monad.State.Class (MonadState)
-import Data.Serialize (Serialize)
+import Data.Serialize (Serialize (..), put, get)
 import GHC.Generics (Generic)
 import Network.Transport
   ( Transport (..), EndPoint (..), Reliability (..), Connection (..), EndPointAddress (..)
@@ -22,6 +23,12 @@ newtype NodeAddress = NodeAddress { _unNodeAddress :: EndPointAddress }
 
 data Message = Message
   deriving (Show, Generic)
+
+data Letter = Letter
+  { _sender   :: NodeAddress
+  , _receiver :: NodeAddress
+  , _msg      :: Message
+  } deriving (Show, Generic)
 
 data SendError =
     SendError (TransportError SendErrorCode)
@@ -45,3 +52,8 @@ instance Show Node where
   show node = "Node: " ++ (show . _address $ node)
 
 instance Serialize Message
+instance Serialize Letter
+
+instance Serialize NodeAddress where
+  put (NodeAddress address) = put . endPointAddressToByteString $ address
+  get = NodeAddress . EndPointAddress <$> get

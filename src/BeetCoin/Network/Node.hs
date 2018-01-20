@@ -1,6 +1,6 @@
 module BeetCoin.Network.Node where
 
-import BeetCoin.Network.Types (Node (..), NodeAddress (..), Message (..))
+import BeetCoin.Network.Types (Node (..), NodeAddress (..), Message (..), Letter (..))
 
 import Control.Monad (forever)
 import qualified Data.ByteString as BS (ByteString (..))
@@ -66,18 +66,18 @@ sendStuff conn msgs = do
 
 runNode :: Node -> IO ()
 runNode node = forever $ do
-  msgs <- receiveMessages node
-  let responses = handleMsgs msgs
-  sendMsgs node responses
+  letters <- receiveLetters node
+  let responses = handleLetters letters
+  sendLetters node responses
 
 -- NOTE: This only works once a connection has been established to another node.
-receiveMessages :: Node -> IO ([Message])
-receiveMessages node = do
+receiveLetters :: Node -> IO ([Letter])
+receiveLetters node = do
   Received conn_id raw_msgs <- _epoll node
   return . rights $ (decode <$> raw_msgs)
 
-handleMsgs = undefined
-sendMsgs = undefined
+handleLetters = undefined
+sendLetters = undefined
 
     
 
