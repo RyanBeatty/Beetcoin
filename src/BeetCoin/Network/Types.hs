@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric, DeriveFunctor, GeneralizedNewtypeDeriving #-}
 module BeetCoin.Network.Types
-  ( FooState (..), FooT (..)
+  ( FooT (..)
   , SendError (..)
   , NodeAddress (..)
   , Message (..)
@@ -19,13 +19,6 @@ import Network.Transport
   , Event (..), TransportError (..), ConnectErrorCode (..), SendErrorCode (..)
   , ConnectionId (..)
   )
-
-hello = undefined
-
-data FooState = FooState { _foo :: HM.Map EndPointAddress Connection }
-
-newtype FooT a = FooT { _fooT :: StateT FooState (IO) a }
-  deriving (Functor, Applicative, Monad, MonadState FooState, MonadIO)
 
 -- | Unique identifier for a node. Addresses are used to connect to nodes.
 -- Takes the form host:port:0.
@@ -47,9 +40,12 @@ data SendError =
   deriving (Show, Eq)
 
 data NodeState = NodeState
-  { _outConns :: HM.Map NodeAddress Connection
-  , _inConns  :: HM.Map NodeAddress ConnectionId
+  { _outConns :: HM.Map EndPointAddress Connection
+  , _inConns  :: HM.Map EndPointAddress ConnectionId
   }
+
+newtype FooT a = FooT { _fooT :: StateT NodeState (IO) a }
+  deriving (Functor, Applicative, Monad, MonadState NodeState, MonadIO)
 
 data Node = Node
   { _address :: NodeAddress -- ^ The address of this Node.

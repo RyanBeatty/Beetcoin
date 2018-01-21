@@ -2,11 +2,11 @@ module BeetCoin.Network.Node where
 
 import BeetCoin.Network.Types
   ( Node (..), NodeAddress (..), Message (..), Letter (..), NodeState (..)
-  , SendError (..), FooT (..), FooState (..)
+  , SendError (..), FooT (..)
   )
 
 import Control.Monad (forever)
-import Control.Monad.State (put, gets)
+import Control.Monad.State (put, get)
 import Control.Monad.Trans (liftIO)
 import qualified Data.ByteString as BS (ByteString (..))
 import qualified Data.ByteString.Char8 as BS8 (pack)
@@ -92,7 +92,8 @@ sendLetters node letters = undefined
 --baz :: Serialize a => EndPoint -> EndPointAddress -> [a] -> HM.Map EndPointAddress Connection -> IO (((), HM.Map EndPointAddress Connection))
 baz :: Serialize a => EndPoint -> EndPointAddress -> [a] -> FooT ()
 baz endpoint address msgs = do
-  connections <- gets _foo
+  node_state <- get
+  let connections = _outConns node_state
   case HM.lookup address connections of
     Nothing -> do
       new_conn <- liftIO $ connect endpoint address ReliableOrdered defaultConnectHints
@@ -102,11 +103,11 @@ baz endpoint address msgs = do
           result <- liftIO $ send new_conn' (encode <$> msgs)
           case result of
             Left error -> liftIO $ close new_conn'
-            Right ()   -> put $ FooState (HM.insert address new_conn' connections)
+            Right ()   -> put $ node_state { _outConns = (HM.insert address new_conn' connections) }
     Just conn -> do
       result <- liftIO $ send conn (encode <$> msgs)
       case result of
-        Left error -> liftIO (close conn) >> (put . FooState $ HM.delete address connections)
+        Left error -> liftIO (close conn) >> (put $ node_state { _outConns = HM.delete address connections })
         Right ()   -> return ()
 
     
