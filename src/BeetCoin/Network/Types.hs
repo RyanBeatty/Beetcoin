@@ -5,6 +5,7 @@ module BeetCoin.Network.Types
   , NodeAddress (..)
   , Message (..)
   , Letter (..)
+  , NodeNetwork (..)
   , NodeState (..)
   , Node (..)
   ) where
@@ -39,6 +40,20 @@ data SendError =
   | ConnectError (TransportError ConnectErrorCode)
   deriving (Show, Eq)
 
+-- | Interface to the underlying network that the node is running on.
+data NodeNetwork = NodeNetwork
+  -- | The addres of this node. Can be used by other nodes to connect to this node.
+  { _address      :: NodeAddress
+  -- | Blocking wait for IO events
+  , _epoll        :: IO (Event)
+  -- | Connect to another node.
+  , _connect      :: EndPointAddress -> IO (Either (TransportError ConnectErrorCode) Connection)
+  -- | Send data accross a connection.
+  , _send         :: Connection -> [Letter] -> IO (Either (TransportError SendErrorCode) ())
+  -- | Shutdown all network communication.
+  , _closeNetwork :: IO ()
+  }
+
 data NodeState = NodeState
   { _outConns :: HM.Map NodeAddress Connection
   , _inConns  :: HM.Map NodeAddress ConnectionId
@@ -48,15 +63,11 @@ newtype FooT a = FooT { _fooT :: StateT NodeState (IO) a }
   deriving (Functor, Applicative, Monad, MonadState NodeState, MonadIO)
 
 data Node = Node
-  { _address :: NodeAddress -- ^ The address of this Node.
-  , _epoll :: IO (Event) -- ^ Blocking wait for IO events.
-  --, _send :: Serialize a => NodeAddress -> [a] -> IO ()
-  , _connect :: EndPointAddress -> IO (Either (TransportError ConnectErrorCode) Connection) -- ^ Establish connection to another Node.
-  , _closeNode :: IO () -- ^ Shutdown the Node.
+  { _network :: NodeNetwork
   }
 
 instance Show Node where
-  show node = "Node: " ++ (show . _address $ node)
+  show node = "Node: " ++ (show . _address . _network $ node)
 
 instance Serialize Message
 instance Serialize Letter
