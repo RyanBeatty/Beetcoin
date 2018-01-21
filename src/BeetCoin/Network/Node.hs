@@ -31,28 +31,11 @@ mkNodeNetwork transport endpoint =
               (\conn letters -> send conn (encode <$> letters))
               (closeEndPoint endpoint >> closeTransport transport)
 
--- mkNode :: Transport -> EndPoint -> Node ()
--- mkNode transport endpoint =
---   Node $ RWST $ runRWST (NodeNetwork (NodeAddress . address $ endpoint)
---                               (receive endpoint)
---                               (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
---                               (\conn letters -> send conn (encode <$> letters))
---                               (closeEndPoint endpoint >> closeTransport transport))
---                         (NodeState HM.empty HM.empty)
-
--- createBeetCoinTransport :: String -> String -> Node (Transport)
--- createBeetCoinTransport host port = do
---   transport <- liftIO $ createTransport host port defaultTCPParameters
---   case transport of
---     Left _  -> undefined
---     Right t -> return t 
-
--- createBeetCoinEndPoint :: Transport -> Node (EndPoint)
--- createBeetCoinEndPoint transport = do
---   endpoint <- liftIO $ newEndPoint transport
---   case endpoint of
---     Left _  -> undefined
---     Right e -> return e
+createNodeParams :: String -> String -> IO (NodeNetwork, NodeState)
+createNodeParams host port = do
+  Right transport <- createTransport host port defaultTCPParameters
+  Right endpoint  <- newEndPoint transport
+  return (mkNodeNetwork transport endpoint, NodeState HM.empty HM.empty)
 
 -- createNode :: String -> String -> Node ()
 -- createNode host port = do
@@ -60,39 +43,11 @@ mkNodeNetwork transport endpoint =
 --   endpoint <- createBeetCoinEndPoint transport
 --   mkNode transport endpoint
 
--- connectToNode :: NodeAddress -> Node (Connection)
--- connectToNode peer_address = do
---   connect' <- asks _connect
---   conn <- liftIO $ connect' (_unNodeAddress peer_address)
---   case conn of
---     Left _      -> undefined
---     Right conn' -> return conn'
-
--- sendMessage :: Connection -> BS.ByteString -> IO ()
--- sendMessage conn msg = do
---   result <- send conn [msg]
---   case result of
---     Left _  -> undefined
---     Right _ -> return ()
-
--- sendStuff :: Serialize a => Connection -> [a] -> IO ()
--- sendStuff conn msgs = do
---   result <- send conn (encode <$> msgs)
---   case result of
---     Left _  -> undefined
---     Right _ -> return ()
-
 -- runNode :: Node -> IO ()
 -- runNode node = forever $ do
 --   letters <- receiveLetters node
 --   let responses = handLetters letters
 --   sendLetters node responses
-
--- -- NOTE: This only works once a connection has been established to another node.
--- receiveLetters :: Node -> IO ([Letter])
--- receiveLetters node = do
---   Received conn_id raw_msgs <- _epoll (_network node)
---   return . rights $ (decode <$> raw_msgs)
 
 -- handLetters = undefined
 
@@ -133,8 +88,7 @@ sendData address letters = do
 -- TODO: Implement error case.
 receiveData :: Node ([Letter])
 receiveData = do
-  network <- ask
-  event <- liftIO $ _epoll network
+  event <- ask >>= liftIO . _epoll
   case event of
     Received con_id bytes -> return . rights . fmap decode $ bytes
     _                     -> receiveData
