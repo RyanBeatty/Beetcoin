@@ -129,6 +129,16 @@ sendData address letters = do
         Left error -> liftIO (close conn) >> (put $ node_state { _outConns = HM.delete address connections })
         Right ()   -> return ()
 
+-- | Block until some Letters are received by this Node.
+-- TODO: Implement error case.
+receiveData :: Node ([Letter])
+receiveData = do
+  network <- ask
+  event <- liftIO $ _epoll network
+  case event of
+    Received con_id bytes -> return . rights . fmap decode $ bytes
+    _                     -> receiveData
+
     
 
 -- setupSomeNodes :: IO ((Node, Connection), (Node, Connection))
