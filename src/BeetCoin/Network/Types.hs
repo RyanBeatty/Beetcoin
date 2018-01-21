@@ -47,7 +47,7 @@ data NodeNetwork = NodeNetwork
   -- | Blocking wait for IO events
   , _epoll        :: IO (Event)
   -- | Connect to another node.
-  , _connect      :: EndPointAddress -> IO (Either (TransportError ConnectErrorCode) Connection)
+  , _connect      :: NodeAddress -> IO (Either (TransportError ConnectErrorCode) Connection)
   -- | Send data accross a connection.
   , _send         :: Connection -> [Letter] -> IO (Either (TransportError SendErrorCode) ())
   -- | Shutdown all network communication.

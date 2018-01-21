@@ -23,6 +23,14 @@ import Network.Transport.TCP (createTransport, defaultTCPParameters)
 mkNodeAddress :: String -> String -> NodeAddress
 mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
 
+mkNodeNetwork :: Transport -> EndPoint -> NodeNetwork
+mkNodeNetwork transport endpoint =
+  NodeNetwork (NodeAddress . address $ endpoint)
+              (receive endpoint)
+              (\address -> connect endpoint (_unNodeAddress address) ReliableOrdered defaultConnectHints)
+              (\conn letters -> send conn (encode <$> letters))
+              (closeEndPoint endpoint >> closeTransport transport)
+
 -- mkNode :: Transport -> EndPoint -> Node ()
 -- mkNode transport endpoint =
 --   Node $ RWST $ runRWST (NodeNetwork (NodeAddress . address $ endpoint)
@@ -32,19 +40,19 @@ mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":"
 --                               (closeEndPoint endpoint >> closeTransport transport))
 --                         (NodeState HM.empty HM.empty)
 
-createBeetCoinTransport :: String -> String -> Node (Transport)
-createBeetCoinTransport host port = do
-  transport <- liftIO $ createTransport host port defaultTCPParameters
-  case transport of
-    Left _  -> undefined
-    Right t -> return t 
+-- createBeetCoinTransport :: String -> String -> Node (Transport)
+-- createBeetCoinTransport host port = do
+--   transport <- liftIO $ createTransport host port defaultTCPParameters
+--   case transport of
+--     Left _  -> undefined
+--     Right t -> return t 
 
-createBeetCoinEndPoint :: Transport -> Node (EndPoint)
-createBeetCoinEndPoint transport = do
-  endpoint <- liftIO $ newEndPoint transport
-  case endpoint of
-    Left _  -> undefined
-    Right e -> return e
+-- createBeetCoinEndPoint :: Transport -> Node (EndPoint)
+-- createBeetCoinEndPoint transport = do
+--   endpoint <- liftIO $ newEndPoint transport
+--   case endpoint of
+--     Left _  -> undefined
+--     Right e -> return e
 
 -- createNode :: String -> String -> Node ()
 -- createNode host port = do
@@ -52,27 +60,27 @@ createBeetCoinEndPoint transport = do
 --   endpoint <- createBeetCoinEndPoint transport
 --   mkNode transport endpoint
 
-connectToNode :: NodeAddress -> Node (Connection)
-connectToNode peer_address = do
-  connect' <- asks _connect
-  conn <- liftIO $ connect' (_unNodeAddress peer_address)
-  case conn of
-    Left _      -> undefined
-    Right conn' -> return conn'
+-- connectToNode :: NodeAddress -> Node (Connection)
+-- connectToNode peer_address = do
+--   connect' <- asks _connect
+--   conn <- liftIO $ connect' (_unNodeAddress peer_address)
+--   case conn of
+--     Left _      -> undefined
+--     Right conn' -> return conn'
 
-sendMessage :: Connection -> BS.ByteString -> IO ()
-sendMessage conn msg = do
-  result <- send conn [msg]
-  case result of
-    Left _  -> undefined
-    Right _ -> return ()
+-- sendMessage :: Connection -> BS.ByteString -> IO ()
+-- sendMessage conn msg = do
+--   result <- send conn [msg]
+--   case result of
+--     Left _  -> undefined
+--     Right _ -> return ()
 
-sendStuff :: Serialize a => Connection -> [a] -> IO ()
-sendStuff conn msgs = do
-  result <- send conn (encode <$> msgs)
-  case result of
-    Left _  -> undefined
-    Right _ -> return ()
+-- sendStuff :: Serialize a => Connection -> [a] -> IO ()
+-- sendStuff conn msgs = do
+--   result <- send conn (encode <$> msgs)
+--   case result of
+--     Left _  -> undefined
+--     Right _ -> return ()
 
 -- runNode :: Node -> IO ()
 -- runNode node = forever $ do
@@ -86,9 +94,9 @@ sendStuff conn msgs = do
 --   Received conn_id raw_msgs <- _epoll (_network node)
 --   return . rights $ (decode <$> raw_msgs)
 
-handLetters = undefined
+-- handLetters = undefined
 
-sendLetters = undefined
+-- sendLetters = undefined
 
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
@@ -101,7 +109,7 @@ sendData address letters = do
   case HM.lookup address connections of
     -- If we aren't connected to the peer, then attempt to establish a new connection.
     Nothing -> do
-      new_conn <- liftIO $ (_connect network) (_unNodeAddress address)
+      new_conn <- liftIO $ (_connect network) address
       case new_conn of
         -- Don't send anything if we can't connect to the peer.
         Left error      -> return ()
