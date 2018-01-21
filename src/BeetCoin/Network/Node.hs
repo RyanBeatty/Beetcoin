@@ -2,11 +2,11 @@ module BeetCoin.Network.Node where
 
 import BeetCoin.Network.Types
   ( Node (..), NodeAddress (..), Message (..), Letter (..), NodeState (..)
-  , SendError (..), FooT (..), NodeNetwork (..)
+  , SendError (..), NodeNetwork (..)
   )
 
 import Control.Monad (forever)
-import Control.Monad.RWS (RWST (..), runRWST, asks)
+import Control.Monad.RWS (RWST (..), runRWST, asks, ask)
 import Control.Monad.State (put, get)
 import Control.Monad.Trans (liftIO)
 import qualified Data.ByteString as BS (ByteString (..))
@@ -92,21 +92,22 @@ sendLetters = undefined
 
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
-sendData :: Serialize a => EndPoint -> NodeAddress -> [a] -> FooT ()
-sendData endpoint address msgs = do
+sendData :: NodeAddress -> [Letter] -> Node ()
+sendData address letters = do
   node_state <- get
+  network <- ask
   let connections = _outConns node_state
   -- Check if we already have a connection to the peer.
   case HM.lookup address connections of
     -- If we aren't connected to the peer, then attempt to establish a new connection.
     Nothing -> do
-      new_conn <- liftIO $ connect endpoint (_unNodeAddress address) ReliableOrdered defaultConnectHints
+      new_conn <- liftIO $ (_connect network) (_unNodeAddress address)
       case new_conn of
         -- Don't send anything if we can't connect to the peer.
         Left error      -> return ()
         -- Attempt to send the data to the peer.
         Right new_conn' -> do
-          result <- liftIO $ send new_conn' (encode <$> msgs)
+          result <- liftIO $ (_send network) new_conn' letters
           case result of
             -- Cleanup the connection if something went wrong.
             Left error -> liftIO $ close new_conn'
@@ -114,7 +115,7 @@ sendData endpoint address msgs = do
             Right ()   -> put $ node_state { _outConns = (HM.insert address new_conn' connections) }
     -- Attempt to send the data if we already have a connection.
     Just conn -> do
-      result <- liftIO $ send conn (encode <$> msgs)
+      result <- liftIO $ (_send network) conn letters
       case result of
         -- Cleanup the connection and remove it from our connection map if something went wrong.
         Left error -> liftIO (close conn) >> (put $ node_state { _outConns = HM.delete address connections })

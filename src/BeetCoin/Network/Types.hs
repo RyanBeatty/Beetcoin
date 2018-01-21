@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveGeneric, DeriveFunctor, GeneralizedNewtypeDeriving #-}
 module BeetCoin.Network.Types
-  ( FooT (..)
-  , SendError (..)
+  ( SendError (..)
   , NodeAddress (..)
   , Message (..)
   , Letter (..)
@@ -59,9 +58,6 @@ data NodeState = NodeState
   { _outConns :: HM.Map NodeAddress Connection
   , _inConns  :: HM.Map NodeAddress ConnectionId
   }
-
-newtype FooT a = FooT { _fooT :: StateT NodeState (IO) a }
-  deriving (Functor, Applicative, Monad, MonadState NodeState, MonadIO)
 
 newtype Node a = Node { _unNode :: RWST NodeNetwork () NodeState IO a }
   deriving (Functor, Applicative, Monad, MonadReader NodeNetwork, MonadState NodeState, MonadIO)
