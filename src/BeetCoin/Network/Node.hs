@@ -89,24 +89,31 @@ sendLetters node letters = undefined
 
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
---baz :: Serialize a => EndPoint -> EndPointAddress -> [a] -> HM.Map EndPointAddress Connection -> IO (((), HM.Map EndPointAddress Connection))
 baz :: Serialize a => EndPoint -> EndPointAddress -> [a] -> FooT ()
 baz endpoint address msgs = do
   node_state <- get
   let connections = _outConns node_state
+  -- Check if we already have a connection to the peer.
   case HM.lookup address connections of
+    -- If we aren't connected to the peer, then attempt to establish a new connection.
     Nothing -> do
       new_conn <- liftIO $ connect endpoint address ReliableOrdered defaultConnectHints
       case new_conn of
+        -- Don't send anything if we can't connect to the peer.
         Left error      -> return ()
+        -- Attempt to send the data to the peer.
         Right new_conn' -> do
           result <- liftIO $ send new_conn' (encode <$> msgs)
           case result of
+            -- Cleanup the connection if something went wrong.
             Left error -> liftIO $ close new_conn'
+            -- Add the new connection to our connection map.
             Right ()   -> put $ node_state { _outConns = (HM.insert address new_conn' connections) }
+    -- Attempt to send the data if we already have a connection.
     Just conn -> do
       result <- liftIO $ send conn (encode <$> msgs)
       case result of
+        -- Cleanup the connection and remove it from our connection map if something went wrong.
         Left error -> liftIO (close conn) >> (put $ node_state { _outConns = HM.delete address connections })
         Right ()   -> return ()
 
