@@ -40,8 +40,8 @@ data SendError =
   deriving (Show, Eq)
 
 data NodeState = NodeState
-  { _outConns :: HM.Map EndPointAddress Connection
-  , _inConns  :: HM.Map EndPointAddress ConnectionId
+  { _outConns :: HM.Map NodeAddress Connection
+  , _inConns  :: HM.Map NodeAddress ConnectionId
   }
 
 newtype FooT a = FooT { _fooT :: StateT NodeState (IO) a }
