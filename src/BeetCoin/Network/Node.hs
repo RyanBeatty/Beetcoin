@@ -89,8 +89,8 @@ sendLetters node letters = undefined
 
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
-baz :: Serialize a => EndPoint -> EndPointAddress -> [a] -> FooT ()
-baz endpoint address msgs = do
+sendData :: Serialize a => EndPoint -> EndPointAddress -> [a] -> FooT ()
+sendData endpoint address msgs = do
   node_state <- get
   let connections = _outConns node_state
   -- Check if we already have a connection to the peer.
