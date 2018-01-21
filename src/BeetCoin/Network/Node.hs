@@ -87,35 +87,6 @@ handLetters = undefined
 sendLetters :: Node -> [Letter] -> IO ()
 sendLetters node letters = undefined
 
-foo :: Serialize a => NodeAddress -> [a] -> NodeState -> IO (NodeState)
-foo address msgs node_state = do
-  case HM.lookup address (_outConns node_state) of
-    Nothing   -> do
-      undefined
-    Just conn -> do
-      code <- send conn (encode <$> msgs)
-      case code of
-        Left _   -> return $ node_state { _outConns = HM.delete address (_outConns node_state) }
-        Right () -> return node_state 
-
-bar :: Serialize a => EndPoint -> EndPointAddress -> [a] -> HM.Map EndPointAddress Connection -> IO (Either (Either SendError Connection) ())
-bar endpoint address msgs connections = do
-  case HM.lookup address connections of
-    Nothing -> do
-      new_conn <- connect endpoint address ReliableOrdered defaultConnectHints
-      case new_conn of
-        Left error      -> return . Left . Left . ConnectError $ error
-        Right new_conn' -> do
-          result <- send new_conn' (encode <$> msgs)
-          case result of
-            Left error -> return . Left . Left . SendError $ error
-            Right ()   -> return . Left . Right $ new_conn'
-    Just conn -> do
-      result <- send conn (encode <$> msgs)
-      case result of
-        Left error -> return . Left . Left . SendError $ error
-        Right ()   -> return . Right $ ()
-
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
 --baz :: Serialize a => EndPoint -> EndPointAddress -> [a] -> HM.Map EndPointAddress Connection -> IO (((), HM.Map EndPointAddress Connection))
