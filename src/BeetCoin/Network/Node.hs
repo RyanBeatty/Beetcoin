@@ -2,20 +2,22 @@ module BeetCoin.Network.Node where
 
 import BeetCoin.Network.Types
   ( Node (..), NodeAddress (..), Message (..), Letter (..), NodeState (..)
-  , SendError (..)
+  , SendError (..), FooT (..), FooState (..)
   )
 
 import Control.Monad (forever)
+import Control.Monad.State (put, gets)
+import Control.Monad.Trans (liftIO)
 import qualified Data.ByteString as BS (ByteString (..))
 import qualified Data.ByteString.Char8 as BS8 (pack)
-import qualified Data.Map.Strict as HM (Map (..), lookup, delete)
+import qualified Data.Map.Strict as HM (Map (..), lookup, delete, insert)
 import Network.Transport
   ( Transport (..), EndPoint (..), Reliability (..), Connection (..), EndPointAddress (..)
   , Event (..), TransportError (..), ConnectErrorCode (..), defaultConnectHints
   )
 import Data.Either (rights)
 import Data.Serialize (Serialize, encode, decode)
-import Network.Transport.TCP (createTransport, defaultTCPParameters)      
+import Network.Transport.TCP (createTransport, defaultTCPParameters)
       
 mkNodeAddress :: String -> String -> NodeAddress
 mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
@@ -114,6 +116,27 @@ bar endpoint address msgs connections = do
         Left error -> return . Left . Left . SendError $ error
         Right ()   -> return . Right $ ()
 
+-- | Send some data. Connects to specified peer if not already connected.
+-- TODO: Accumulate connection and send errors in a Writer monad.
+--baz :: Serialize a => EndPoint -> EndPointAddress -> [a] -> HM.Map EndPointAddress Connection -> IO (((), HM.Map EndPointAddress Connection))
+baz :: Serialize a => EndPoint -> EndPointAddress -> [a] -> FooT ()
+baz endpoint address msgs = do
+  connections <- gets _foo
+  case HM.lookup address connections of
+    Nothing -> do
+      new_conn <- liftIO $ connect endpoint address ReliableOrdered defaultConnectHints
+      case new_conn of
+        Left error      -> return ()
+        Right new_conn' -> do
+          result <- liftIO $ send new_conn' (encode <$> msgs)
+          case result of
+            Left error -> liftIO $ close new_conn'
+            Right ()   -> put $ FooState (HM.insert address new_conn' connections)
+    Just conn -> do
+      result <- liftIO $ send conn (encode <$> msgs)
+      case result of
+        Left error -> liftIO (close conn) >> (put . FooState $ HM.delete address connections)
+        Right ()   -> return ()
 
     
 
