@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass, DeriveGeneric #-}
 module BeetCoin.Network.Types
-  ( NodeAddress (..)
+  ( SendError (..)
+  , NodeAddress (..)
   , Message (..)
   , Letter (..)
   , NodeState (..)
@@ -8,6 +9,7 @@ module BeetCoin.Network.Types
   ) where
 
 import Control.Monad.State.Class (MonadState)
+import qualified Data.Map.Strict as HM (Map (..))
 import Data.Serialize (Serialize (..), put, get)
 import GHC.Generics (Generic)
 import Network.Transport
@@ -36,14 +38,14 @@ data SendError =
   deriving (Show, Eq)
 
 data NodeState = NodeState
-  { _outConns :: [(NodeAddress, Connection)]
-  , _inConns  :: [(NodeAddress, ConnectionId)]
+  { _outConns :: HM.Map NodeAddress Connection
+  , _inConns  :: HM.Map NodeAddress ConnectionId
   }
 
 data Node = Node
   { _address :: NodeAddress -- ^ The address of this Node.
   , _epoll :: IO (Event) -- ^ Blocking wait for IO events.
-  -- , _send :: Serialize a => NodeAddress -> [a] -> IO (Either SendError ())
+  --, _send :: Serialize a => NodeAddress -> [a] -> IO ()
   , _connect :: EndPointAddress -> IO (Either (TransportError ConnectErrorCode) Connection) -- ^ Establish connection to another Node.
   , _closeNode :: IO () -- ^ Shutdown the Node.
   }
