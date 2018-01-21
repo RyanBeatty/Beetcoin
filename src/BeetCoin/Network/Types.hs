@@ -10,7 +10,8 @@ module BeetCoin.Network.Types
   , Node (..)
   ) where
 
-import Control.Monad.State(MonadState, StateT (..))
+import Control.Monad.RWS (RWST (..), MonadReader)
+import Control.Monad.State (MonadState, StateT (..))
 import Control.Monad.Trans (MonadIO)
 import qualified Data.Map.Strict as HM (Map (..))
 import Data.Serialize (Serialize (..), put, get)
@@ -62,12 +63,8 @@ data NodeState = NodeState
 newtype FooT a = FooT { _fooT :: StateT NodeState (IO) a }
   deriving (Functor, Applicative, Monad, MonadState NodeState, MonadIO)
 
-data Node = Node
-  { _network :: NodeNetwork
-  }
-
-instance Show Node where
-  show node = "Node: " ++ (show . _address . _network $ node)
+newtype Node a = Node { _unNode :: RWST NodeNetwork () NodeState IO a }
+  deriving (Functor, Applicative, Monad, MonadReader NodeNetwork, MonadState NodeState, MonadIO)
 
 instance Serialize Message
 instance Serialize Letter

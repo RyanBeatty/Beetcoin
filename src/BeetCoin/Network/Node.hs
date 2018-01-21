@@ -6,11 +6,12 @@ import BeetCoin.Network.Types
   )
 
 import Control.Monad (forever)
+import Control.Monad.RWS (RWST (..), runRWST, asks)
 import Control.Monad.State (put, get)
 import Control.Monad.Trans (liftIO)
 import qualified Data.ByteString as BS (ByteString (..))
 import qualified Data.ByteString.Char8 as BS8 (pack)
-import qualified Data.Map.Strict as HM (Map (..), lookup, delete, insert)
+import qualified Data.Map.Strict as HM (Map (..), lookup, delete, insert, empty)
 import Network.Transport
   ( Transport (..), EndPoint (..), Reliability (..), Connection (..), EndPointAddress (..)
   , Event (..), TransportError (..), ConnectErrorCode (..), defaultConnectHints
@@ -22,37 +23,39 @@ import Network.Transport.TCP (createTransport, defaultTCPParameters)
 mkNodeAddress :: String -> String -> NodeAddress
 mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
 
-mkNode :: Transport -> EndPoint -> Node
-mkNode transport endpoint =
-  Node $ NodeNetwork (NodeAddress . address $ endpoint)
-                     (receive endpoint)
-                     (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
-                     (\conn letters -> send conn (encode <$> letters))
-                     (closeEndPoint endpoint >> closeTransport transport)
+-- mkNode :: Transport -> EndPoint -> Node ()
+-- mkNode transport endpoint =
+--   Node $ RWST $ runRWST (NodeNetwork (NodeAddress . address $ endpoint)
+--                               (receive endpoint)
+--                               (\address -> connect endpoint address ReliableOrdered defaultConnectHints)
+--                               (\conn letters -> send conn (encode <$> letters))
+--                               (closeEndPoint endpoint >> closeTransport transport))
+--                         (NodeState HM.empty HM.empty)
 
-createBeetCoinTransport :: String -> String -> IO (Transport)
+createBeetCoinTransport :: String -> String -> Node (Transport)
 createBeetCoinTransport host port = do
-  transport <- createTransport host port defaultTCPParameters
+  transport <- liftIO $ createTransport host port defaultTCPParameters
   case transport of
     Left _  -> undefined
     Right t -> return t 
 
-createBeetCoinEndPoint :: Transport -> IO (EndPoint)
+createBeetCoinEndPoint :: Transport -> Node (EndPoint)
 createBeetCoinEndPoint transport = do
-  endpoint <- newEndPoint transport
+  endpoint <- liftIO $ newEndPoint transport
   case endpoint of
     Left _  -> undefined
     Right e -> return e
 
-createNode :: String -> String -> IO (Node)
-createNode host port = do
-  transport <- createBeetCoinTransport host port
-  endpoint <- createBeetCoinEndPoint transport
-  return $ mkNode transport endpoint
+-- createNode :: String -> String -> Node ()
+-- createNode host port = do
+--   transport <- createBeetCoinTransport host port
+--   endpoint <- createBeetCoinEndPoint transport
+--   mkNode transport endpoint
 
-connectToNode :: Node -> NodeAddress -> IO (Connection)
-connectToNode node peer_address = do
-  conn <- _connect (_network node) (_unNodeAddress peer_address)
+connectToNode :: NodeAddress -> Node (Connection)
+connectToNode peer_address = do
+  connect' <- asks _connect
+  conn <- liftIO $ connect' (_unNodeAddress peer_address)
   case conn of
     Left _      -> undefined
     Right conn' -> return conn'
@@ -71,22 +74,21 @@ sendStuff conn msgs = do
     Left _  -> undefined
     Right _ -> return ()
 
-runNode :: Node -> IO ()
-runNode node = forever $ do
-  letters <- receiveLetters node
-  let responses = handLetters letters
-  sendLetters node responses
+-- runNode :: Node -> IO ()
+-- runNode node = forever $ do
+--   letters <- receiveLetters node
+--   let responses = handLetters letters
+--   sendLetters node responses
 
--- NOTE: This only works once a connection has been established to another node.
-receiveLetters :: Node -> IO ([Letter])
-receiveLetters node = do
-  Received conn_id raw_msgs <- _epoll (_network node)
-  return . rights $ (decode <$> raw_msgs)
+-- -- NOTE: This only works once a connection has been established to another node.
+-- receiveLetters :: Node -> IO ([Letter])
+-- receiveLetters node = do
+--   Received conn_id raw_msgs <- _epoll (_network node)
+--   return . rights $ (decode <$> raw_msgs)
 
 handLetters = undefined
 
-sendLetters :: Node -> [Letter] -> IO ()
-sendLetters node letters = undefined
+sendLetters = undefined
 
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
@@ -120,13 +122,13 @@ sendData endpoint address msgs = do
 
     
 
-setupSomeNodes :: IO ((Node, Connection), (Node, Connection))
-setupSomeNodes = do
-  n1 <- createNode "localhost" "3939"
-  n2 <- createNode "localhost" "4000"
-  c1 <- connectToNode n1 (_address . _network $ n2)
-  c2 <- connectToNode n2 (_address . _network $ n1)
-  return ((n1, c1), (n2, c2))
+-- setupSomeNodes :: IO ((Node, Connection), (Node, Connection))
+-- setupSomeNodes = do
+--   n1 <- createNode "localhost" "3939"
+--   n2 <- createNode "localhost" "4000"
+--   c1 <- connectToNode n1 (_address . _network $ n2)
+--   c2 <- connectToNode n2 (_address . _network $ n1)
+--   return ((n1, c1), (n2, c2))
 
 setupNetwork :: IO ()
 setupNetwork = undefined
