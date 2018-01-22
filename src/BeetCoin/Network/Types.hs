@@ -11,7 +11,7 @@ module BeetCoin.Network.Types
 
 import Control.Monad.RWS (RWST (..), MonadReader)
 import Control.Monad.State (MonadState, StateT (..))
-import Control.Monad.Trans (MonadIO)
+import Control.Monad.Trans (MonadTrans, MonadIO)
 import qualified Data.Map.Strict as HM (Map (..))
 import Data.Serialize (Serialize (..), put, get)
 import GHC.Generics (Generic)
@@ -62,13 +62,10 @@ data NetworkState = NetworkState
 newtype NodeNetwork m a = NodeNetwork { _unNodeNetwork :: RWST Network () NetworkState m a }
   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NetworkState, MonadIO)
 
--- newtype Fode m a = Fode { _unFode :: RWST Network () NetworkState m a }
---   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NetworkState, MonadIO)
- 
--- newtype Foo m a = Foo { _unFoo :: RWST () () () m a }
---   deriving (Functor, Applicative, Monad, MonadIO, MonadTrans)
+newtype NodeAction m a = NodeAction { _unNodeAction :: RWST () () () m a }
+  deriving (Functor, Applicative, Monad, MonadTrans)
 
--- type Foo1 a = Foo (Fode IO) a
+type Node m a = NodeAction (NodeNetwork m) a
 
 instance Serialize Message
 instance Serialize Letter
