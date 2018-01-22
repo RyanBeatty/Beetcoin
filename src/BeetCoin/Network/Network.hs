@@ -28,7 +28,7 @@ mkNetwork transport endpoint =
   Network (NodeAddress . address $ endpoint)
               (receive endpoint)
               (\address -> connect endpoint (_unNodeAddress address) ReliableOrdered defaultConnectHints)
-              (\conn letters -> send conn letters)
+              (send)
               (closeEndPoint endpoint >> closeTransport transport)
 
 createNetworkParams :: String -> String -> IO (Network, NetworkState)
@@ -56,7 +56,7 @@ createNetworkParams host port = do
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
 sendData :: MonadIO m => NodeAddress -> [BS.ByteString] -> NodeNetwork m ()
-sendData address letters = do
+sendData address bytes = do
   network_state <- get
   network <- ask
   let connections = _outConns network_state
@@ -70,7 +70,7 @@ sendData address letters = do
         Left error      -> return ()
         -- Attempt to send the data to the peer.
         Right new_conn' -> do
-          result <- liftIO $ (_send network) new_conn' letters
+          result <- liftIO $ (_send network) new_conn' bytes
           case result of
             -- Cleanup the connection if something went wrong.
             Left error -> liftIO $ close new_conn'
@@ -78,13 +78,13 @@ sendData address letters = do
             Right ()   -> put $ network_state { _outConns = (HM.insert address new_conn' connections) }
     -- Attempt to send the data if we already have a connection.
     Just conn -> do
-      result <- liftIO $ (_send network) conn letters
+      result <- liftIO $ (_send network) conn bytes
       case result of
         -- Cleanup the connection and remove it from our connection map if something went wrong.
         Left error -> liftIO (close conn) >> (put $ network_state { _outConns = HM.delete address connections })
         Right ()   -> return ()
 
--- | Block until some Letters are received by the network.
+-- | Block until some data is received by the network.
 -- TODO: Implement error case.
 receiveData :: (MonadIO m, Serialize a) => NodeNetwork m [a]
 receiveData = do
