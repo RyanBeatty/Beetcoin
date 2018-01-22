@@ -56,11 +56,13 @@ data Network = Network
   , _closeNetwork :: IO ()
   }
 
+-- | Tracks the internal state of connections to and from this Node's network.
 data NetworkState = NetworkState
   { _outConns :: HM.Map NodeAddress Connection
-  , _inConns  :: HM.Map NodeAddress ConnectionId
+  , _inConns  :: HM.Map NodeAddress ConnectionId -- TODO: Do I need this?
   }
 
+-- | Abstraction of the network the Node is running on top of.
 newtype NodeNetwork m a = NodeNetwork { _unNodeNetwork :: RWST Network () NetworkState m a }
   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NetworkState, MonadIO)
 
