@@ -4,7 +4,7 @@ module BeetCoin.Network.Types
   , NodeAddress (..)
   , Message (..)
   , Letter (..)
-  , NodeNetwork (..)
+  , Network (..)
   , NodeState (..)
   , Node (..)
   ) where
@@ -41,7 +41,7 @@ data SendError =
   deriving (Show, Eq)
 
 -- | Interface to the underlying network that the node is running on.
-data NodeNetwork = NodeNetwork
+data Network = Network
   -- | The addres of this node. Can be used by other nodes to connect to this node.
   { _address      :: NodeAddress
   -- | Blocking wait for IO events
@@ -59,8 +59,16 @@ data NodeState = NodeState
   , _inConns  :: HM.Map NodeAddress ConnectionId
   }
 
-newtype Node a = Node { _unNode :: RWST NodeNetwork () NodeState IO a }
-  deriving (Functor, Applicative, Monad, MonadReader NodeNetwork, MonadState NodeState, MonadIO)
+newtype Node a = Node { _unNode :: RWST Network () NodeState IO a }
+  deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NodeState, MonadIO)
+
+-- newtype Fode m a = Fode { _unFode :: RWST Network () NodeState m a }
+--   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NodeState, MonadIO)
+ 
+-- newtype Foo m a = Foo { _unFoo :: RWST () () () m a }
+--   deriving (Functor, Applicative, Monad, MonadIO, MonadTrans)
+
+-- type Foo1 a = Foo (Fode IO) a
 
 instance Serialize Message
 instance Serialize Letter

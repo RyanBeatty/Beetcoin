@@ -2,7 +2,7 @@ module BeetCoin.Network.Node where
 
 import BeetCoin.Network.Types
   ( Node (..), NodeAddress (..), Message (..), Letter (..), NodeState (..)
-  , SendError (..), NodeNetwork (..)
+  , SendError (..), Network (..)
   )
 
 import Control.Monad (forever)
@@ -23,19 +23,19 @@ import Network.Transport.TCP (createTransport, defaultTCPParameters)
 mkNodeAddress :: String -> String -> NodeAddress
 mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
 
-mkNodeNetwork :: Transport -> EndPoint -> NodeNetwork
-mkNodeNetwork transport endpoint =
-  NodeNetwork (NodeAddress . address $ endpoint)
+mkNetwork :: Transport -> EndPoint -> Network
+mkNetwork transport endpoint =
+  Network (NodeAddress . address $ endpoint)
               (receive endpoint)
               (\address -> connect endpoint (_unNodeAddress address) ReliableOrdered defaultConnectHints)
               (\conn letters -> send conn (encode <$> letters))
               (closeEndPoint endpoint >> closeTransport transport)
 
-createNodeParams :: String -> String -> IO (NodeNetwork, NodeState)
+createNodeParams :: String -> String -> IO (Network, NodeState)
 createNodeParams host port = do
   Right transport <- createTransport host port defaultTCPParameters
   Right endpoint  <- newEndPoint transport
-  return (mkNodeNetwork transport endpoint, NodeState HM.empty HM.empty)
+  return (mkNetwork transport endpoint, NodeState HM.empty HM.empty)
 
 -- createNode :: String -> String -> Node ()
 -- createNode host port = do
