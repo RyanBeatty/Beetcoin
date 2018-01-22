@@ -57,9 +57,9 @@ createNetworkParams host port = do
 -- TODO: Accumulate connection and send errors in a Writer monad.
 sendData :: NodeAddress -> [Letter] -> NodeNetwork ()
 sendData address letters = do
-  node_state <- get
+  network_state <- get
   network <- ask
-  let connections = _outConns node_state
+  let connections = _outConns network_state
   -- Check if we already have a connection to the peer.
   case HM.lookup address connections of
     -- If we aren't connected to the peer, then attempt to establish a new connection.
@@ -75,13 +75,13 @@ sendData address letters = do
             -- Cleanup the connection if something went wrong.
             Left error -> liftIO $ close new_conn'
             -- Add the new connection to our connection map.
-            Right ()   -> put $ node_state { _outConns = (HM.insert address new_conn' connections) }
+            Right ()   -> put $ network_state { _outConns = (HM.insert address new_conn' connections) }
     -- Attempt to send the data if we already have a connection.
     Just conn -> do
       result <- liftIO $ (_send network) conn letters
       case result of
         -- Cleanup the connection and remove it from our connection map if something went wrong.
-        Left error -> liftIO (close conn) >> (put $ node_state { _outConns = HM.delete address connections })
+        Left error -> liftIO (close conn) >> (put $ network_state { _outConns = HM.delete address connections })
         Right ()   -> return ()
 
 -- | Block until some Letters are received by the network.
