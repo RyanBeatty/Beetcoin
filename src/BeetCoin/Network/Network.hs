@@ -28,7 +28,7 @@ mkNetwork transport endpoint =
   Network (NodeAddress . address $ endpoint)
               (receive endpoint)
               (\address -> connect endpoint (_unNodeAddress address) ReliableOrdered defaultConnectHints)
-              (\conn letters -> send conn (encode <$> letters))
+              (\conn letters -> send conn letters)
               (closeEndPoint endpoint >> closeTransport transport)
 
 createNetworkParams :: String -> String -> IO (Network, NetworkState)
@@ -55,7 +55,7 @@ createNetworkParams host port = do
 
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
-sendData :: MonadIO m => NodeAddress -> [Letter] -> NodeNetwork m ()
+sendData :: MonadIO m => NodeAddress -> [BS.ByteString] -> NodeNetwork m ()
 sendData address letters = do
   network_state <- get
   network <- ask

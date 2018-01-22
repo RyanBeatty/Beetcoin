@@ -12,6 +12,7 @@ module BeetCoin.Network.Types
 import Control.Monad.RWS (RWST (..), MonadReader)
 import Control.Monad.State (MonadState, StateT (..))
 import Control.Monad.Trans (MonadTrans, MonadIO)
+import qualified Data.ByteString as BS (ByteString)
 import qualified Data.Map.Strict as HM (Map (..))
 import Data.Serialize (Serialize (..), put, get)
 import GHC.Generics (Generic)
@@ -50,7 +51,7 @@ data Network = Network
   -- | Connect to another node.
   , _connect      :: NodeAddress -> IO (Either (TransportError ConnectErrorCode) Connection)
   -- | Send data accross a connection.
-  , _send         :: Connection -> [Letter] -> IO (Either (TransportError SendErrorCode) ())
+  , _send         :: Connection -> [BS.ByteString] -> IO (Either (TransportError SendErrorCode) ())
   -- | Shutdown all network communication.
   , _closeNetwork :: IO ()
   }
