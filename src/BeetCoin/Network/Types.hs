@@ -5,7 +5,7 @@ module BeetCoin.Network.Types
   , Message (..)
   , Letter (..)
   , Network (..)
-  , NodeState (..)
+  , NetworkState (..)
   , Node (..)
   ) where
 
@@ -54,16 +54,16 @@ data Network = Network
   , _closeNetwork :: IO ()
   }
 
-data NodeState = NodeState
+data NetworkState = NetworkState
   { _outConns :: HM.Map NodeAddress Connection
   , _inConns  :: HM.Map NodeAddress ConnectionId
   }
 
-newtype Node a = Node { _unNode :: RWST Network () NodeState IO a }
-  deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NodeState, MonadIO)
+newtype Node a = Node { _unNode :: RWST Network () NetworkState IO a }
+  deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NetworkState, MonadIO)
 
--- newtype Fode m a = Fode { _unFode :: RWST Network () NodeState m a }
---   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NodeState, MonadIO)
+-- newtype Fode m a = Fode { _unFode :: RWST Network () NetworkState m a }
+--   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NetworkState, MonadIO)
  
 -- newtype Foo m a = Foo { _unFoo :: RWST () () () m a }
 --   deriving (Functor, Applicative, Monad, MonadIO, MonadTrans)

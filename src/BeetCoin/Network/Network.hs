@@ -1,7 +1,7 @@
-module BeetCoin.Network.Node where
+module BeetCoin.Network.Network where
 
 import BeetCoin.Network.Types
-  ( Node (..), NodeAddress (..), Message (..), Letter (..), NodeState (..)
+  ( Node (..), NodeAddress (..), Message (..), Letter (..), NetworkState (..)
   , SendError (..), Network (..)
   )
 
@@ -31,11 +31,11 @@ mkNetwork transport endpoint =
               (\conn letters -> send conn (encode <$> letters))
               (closeEndPoint endpoint >> closeTransport transport)
 
-createNodeParams :: String -> String -> IO (Network, NodeState)
-createNodeParams host port = do
+createNetworkParams :: String -> String -> IO (Network, NetworkState)
+createNetworkParams host port = do
   Right transport <- createTransport host port defaultTCPParameters
   Right endpoint  <- newEndPoint transport
-  return (mkNetwork transport endpoint, NodeState HM.empty HM.empty)
+  return (mkNetwork transport endpoint, NetworkState HM.empty HM.empty)
 
 -- createNode :: String -> String -> Node ()
 -- createNode host port = do
