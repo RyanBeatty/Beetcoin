@@ -59,7 +59,7 @@ data NetworkState = NetworkState
   , _inConns  :: HM.Map NodeAddress ConnectionId
   }
 
-newtype NodeNetwork a = NodeNetwork { _unNodeNetwork :: RWST Network () NetworkState IO a }
+newtype NodeNetwork m a = NodeNetwork { _unNodeNetwork :: RWST Network () NetworkState m a }
   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NetworkState, MonadIO)
 
 -- newtype Fode m a = Fode { _unFode :: RWST Network () NetworkState m a }

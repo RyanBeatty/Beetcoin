@@ -8,7 +8,7 @@ import BeetCoin.Network.Types
 import Control.Monad (forever)
 import Control.Monad.RWS (RWST (..), runRWST, asks, ask)
 import Control.Monad.State (put, get)
-import Control.Monad.Trans (liftIO)
+import Control.Monad.Trans (MonadIO, liftIO)
 import qualified Data.ByteString as BS (ByteString (..))
 import qualified Data.ByteString.Char8 as BS8 (pack)
 import qualified Data.Map.Strict as HM (Map (..), lookup, delete, insert, empty)
@@ -55,7 +55,7 @@ createNetworkParams host port = do
 
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
-sendData :: NodeAddress -> [Letter] -> NodeNetwork ()
+sendData :: MonadIO m => NodeAddress -> [Letter] -> NodeNetwork m ()
 sendData address letters = do
   network_state <- get
   network <- ask
@@ -86,7 +86,7 @@ sendData address letters = do
 
 -- | Block until some Letters are received by the network.
 -- TODO: Implement error case.
-receiveData :: NodeNetwork ([Letter])
+receiveData :: MonadIO m => NodeNetwork m [Letter]
 receiveData = do
   event <- ask >>= liftIO . _epoll
   case event of
