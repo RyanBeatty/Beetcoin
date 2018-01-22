@@ -1,7 +1,7 @@
 module BeetCoin.Network.Network where
 
 import BeetCoin.Network.Types
-  ( Node (..), NodeAddress (..), Message (..), Letter (..), NetworkState (..)
+  ( NodeNetwork (..), NodeAddress (..), Message (..), Letter (..), NetworkState (..)
   , SendError (..), Network (..)
   )
 
@@ -55,7 +55,7 @@ createNetworkParams host port = do
 
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
-sendData :: NodeAddress -> [Letter] -> Node ()
+sendData :: NodeAddress -> [Letter] -> NodeNetwork ()
 sendData address letters = do
   node_state <- get
   network <- ask
@@ -84,9 +84,9 @@ sendData address letters = do
         Left error -> liftIO (close conn) >> (put $ node_state { _outConns = HM.delete address connections })
         Right ()   -> return ()
 
--- | Block until some Letters are received by this Node.
+-- | Block until some Letters are received by the network.
 -- TODO: Implement error case.
-receiveData :: Node ([Letter])
+receiveData :: NodeNetwork ([Letter])
 receiveData = do
   event <- ask >>= liftIO . _epoll
   case event of

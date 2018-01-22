@@ -6,7 +6,7 @@ module BeetCoin.Network.Types
   , Letter (..)
   , Network (..)
   , NetworkState (..)
-  , Node (..)
+  , NodeNetwork (..)
   ) where
 
 import Control.Monad.RWS (RWST (..), MonadReader)
@@ -59,7 +59,7 @@ data NetworkState = NetworkState
   , _inConns  :: HM.Map NodeAddress ConnectionId
   }
 
-newtype Node a = Node { _unNode :: RWST Network () NetworkState IO a }
+newtype NodeNetwork a = NodeNetwork { _unNodeNetwork :: RWST Network () NetworkState IO a }
   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NetworkState, MonadIO)
 
 -- newtype Fode m a = Fode { _unFode :: RWST Network () NetworkState m a }
