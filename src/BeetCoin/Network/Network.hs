@@ -86,7 +86,7 @@ sendData address letters = do
 
 -- | Block until some Letters are received by the network.
 -- TODO: Implement error case.
-receiveData :: MonadIO m => NodeNetwork m [Letter]
+receiveData :: (MonadIO m, Serialize a) => NodeNetwork m [a]
 receiveData = do
   event <- ask >>= liftIO . _epoll
   case event of

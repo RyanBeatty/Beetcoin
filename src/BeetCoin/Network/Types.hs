@@ -41,6 +41,7 @@ data SendError =
   deriving (Show, Eq)
 
 -- | Interface to the underlying network that the node is running on.
+-- TODO: Parameterize with a monad?
 data Network = Network
   -- | The addres of this node. Can be used by other nodes to connect to this node.
   { _address      :: NodeAddress
