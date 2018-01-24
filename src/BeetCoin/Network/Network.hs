@@ -36,6 +36,7 @@ mkNetworkState = NetworkState HM.empty HM.empty
 
 createNetwork :: MonadIO m => String -> String -> m (Network)
 createNetwork host port = do
+  -- TODO: Handle error cases.
   Right transport <- liftIO $ createTransport host port defaultTCPParameters
   Right endpoint  <- liftIO $ newEndPoint transport
   return (mkNetwork transport endpoint)
