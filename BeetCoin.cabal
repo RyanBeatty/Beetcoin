@@ -49,6 +49,7 @@ library
       BeetCoin.Core.Types
       BeetCoin.Core.Utils
       BeetCoin.Network.Network
+      BeetCoin.Network.Node
       BeetCoin.Network.Types
   default-language: Haskell2010
 

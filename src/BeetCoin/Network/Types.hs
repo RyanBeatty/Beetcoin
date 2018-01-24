@@ -7,6 +7,7 @@ module BeetCoin.Network.Types
   , Network (..)
   , NetworkState (..)
   , NodeNetwork (..)
+  , Node (..)
   ) where
 
 import Control.Monad.RWS (RWST (..), MonadReader)
@@ -66,10 +67,8 @@ data NetworkState = NetworkState
 newtype NodeNetwork m a = NodeNetwork { _unNodeNetwork :: RWST Network () NetworkState m a }
   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NetworkState, MonadIO)
 
-newtype NodeAction m a = NodeAction { _unNodeAction :: RWST () () () m a }
+newtype Node m a = Node { _unNode :: RWST () () () m a }
   deriving (Functor, Applicative, Monad, MonadTrans)
-
-type Node m a = NodeAction (NodeNetwork m) a
 
 instance Serialize Message
 instance Serialize Letter

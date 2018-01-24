@@ -31,14 +31,22 @@ mkNetwork transport endpoint =
               (send)
               (closeEndPoint endpoint >> closeTransport transport)
 
-createNetworkParams :: String -> String -> IO (Network, NetworkState)
-createNetworkParams host port = do
-  Right transport <- createTransport host port defaultTCPParameters
-  Right endpoint  <- newEndPoint transport
-  return (mkNetwork transport endpoint, NetworkState HM.empty HM.empty)
+mkNetworkState :: NetworkState
+mkNetworkState = NetworkState HM.empty HM.empty
+
+createNetwork :: MonadIO m => String -> String -> m (Network)
+createNetwork host port = do
+  Right transport <- liftIO $ createTransport host port defaultTCPParameters
+  Right endpoint  <- liftIO $ newEndPoint transport
+  return (mkNetwork transport endpoint)
 
 runNodeNetwork :: MonadIO m => NodeNetwork m a -> Network -> NetworkState -> m (a, NetworkState, ())
-runNodeNetwork = runRWST . _unNodeNetwork 
+runNodeNetwork = runRWST . _unNodeNetwork
+
+bindNodeNetwork :: MonadIO m => NodeNetwork m a -> String -> String -> m (a, NetworkState, ())
+bindNodeNetwork network_action host port = do
+  network <- createNetwork host port
+  runNodeNetwork network_action network mkNetworkState
 
 -- setupNetwork :: MonadIO m => String -> String -> IO (NodeNetwork m ())
 -- setupNetwork host port = do
