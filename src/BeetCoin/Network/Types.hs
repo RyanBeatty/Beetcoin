@@ -7,6 +7,8 @@ module BeetCoin.Network.Types
   , Network (..)
   , NetworkState (..)
   , NodeNetwork (..)
+  , NodeConfig (..)
+  , NodeState (..)
   , Node (..)
   ) where
 
@@ -67,7 +69,13 @@ data NetworkState = NetworkState
 newtype NodeNetwork m a = NodeNetwork { _unNodeNetwork :: RWST Network () NetworkState m a }
   deriving (Functor, Applicative, Monad, MonadReader Network, MonadState NetworkState, MonadIO)
 
-newtype Node m a = Node { _unNode :: RWST () () () m a }
+data NodeConfig = NodeConfig
+  deriving (Show)
+
+data NodeState = NodeState
+  deriving (Show)
+
+newtype Node m a = Node { _unNode :: RWST NodeConfig () NodeState m a }
   deriving (Functor, Applicative, Monad, MonadTrans)
 
 instance Serialize Message
