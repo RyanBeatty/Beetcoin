@@ -19,9 +19,6 @@ import Network.Transport
 import Data.Either (rights)
 import Data.Serialize (Serialize, encode, decode)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
-      
-mkNodeAddress :: String -> String -> NodeAddress
-mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
 
 mkNetwork :: Transport -> EndPoint -> Network
 mkNetwork transport endpoint =

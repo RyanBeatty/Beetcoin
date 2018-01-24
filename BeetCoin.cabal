@@ -51,6 +51,7 @@ library
       BeetCoin.Network.Network
       BeetCoin.Network.Node
       BeetCoin.Network.Types
+      BeetCoin.Network.Utils
   default-language: Haskell2010
 
 executable BeetCoin-exe
