@@ -37,6 +37,15 @@ createNetworkParams host port = do
   Right endpoint  <- newEndPoint transport
   return (mkNetwork transport endpoint, NetworkState HM.empty HM.empty)
 
+runNodeNetwork :: MonadIO m => NodeNetwork m a -> Network -> NetworkState -> m (a, NetworkState, ())
+runNodeNetwork = runRWST . _unNodeNetwork 
+
+-- setupNetwork :: MonadIO m => String -> String -> IO (NodeNetwork m ())
+-- setupNetwork host port = do
+--   (network, network_state) <- createNetworkParams host port
+--   return . 
+  
+
 -- createNode :: String -> String -> Node ()
 -- createNode host port = do
 --   transport <- createBeetCoinTransport host port
