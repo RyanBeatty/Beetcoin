@@ -17,7 +17,7 @@ startNode1 = do
   network <- createNetwork "localhost" "3939"
   let my_address     = mkNodeAddress "localhost" "3939" 
   let peer_address   = mkNodeAddress "localhost" "4000"
-  let network_action = (runRWST . _unNode) (forever $ sendLetter (mkLetter my_address peer_address Message)) NodeConfig NodeState
+  let network_action = runNode (forever $ sendLetter (mkLetter my_address peer_address Message)) NodeConfig NodeState
   runNodeNetwork network_action network mkNetworkState
   return ()
 
@@ -25,9 +25,12 @@ startNode2 :: IO ()
 startNode2 = do
   network <- createNetwork "localhost" "4000"
   let peer_address = mkNodeAddress "localhost" "3939"
-  let network_action = (runRWST . _unNode) (forever $ receiveFromNode) NodeConfig NodeState
+  let network_action = runNode (forever $ receiveFromNode) NodeConfig NodeState
   runNodeNetwork network_action network mkNetworkState
   return ()
+
+runNode :: MonadIO m => Node (NodeNetwork m) a -> NodeConfig -> NodeState -> NodeNetwork m (a, NodeState, ())
+runNode = runRWST . _unNode 
 
 mkLetter :: NodeAddress -> NodeAddress -> Message -> Letter
 mkLetter sender receiver msg = Letter sender receiver msg
