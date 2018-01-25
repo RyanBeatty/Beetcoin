@@ -46,28 +46,6 @@ bindNodeNetwork network_action host port = do
   network <- createNetwork host port
   runNodeNetwork network_action network mkNetworkState
 
--- setupNetwork :: MonadIO m => String -> String -> IO (NodeNetwork m ())
--- setupNetwork host port = do
---   (network, network_state) <- createNetworkParams host port
---   return . 
-  
-
--- createNode :: String -> String -> Node ()
--- createNode host port = do
---   transport <- createBeetCoinTransport host port
---   endpoint <- createBeetCoinEndPoint transport
---   mkNode transport endpoint
-
--- runNode :: Node -> IO ()
--- runNode node = forever $ do
---   letters <- receiveLetters node
---   let responses = handLetters letters
---   sendLetters node responses
-
--- handLetters = undefined
-
--- sendLetters = undefined
-
 -- | Send some data. Connects to specified peer if not already connected.
 -- TODO: Accumulate connection and send errors in a Writer monad.
 sendData :: MonadIO m => NodeAddress -> [BS.ByteString] -> NodeNetwork m ()
@@ -107,16 +85,6 @@ receiveData = do
   case event of
     Received con_id bytes -> return . rights . fmap decode $ bytes
     _                     -> receiveData
-
-    
-
--- setupSomeNodes :: IO ((Node, Connection), (Node, Connection))
--- setupSomeNodes = do
---   n1 <- createNode "localhost" "3939"
---   n2 <- createNode "localhost" "4000"
---   c1 <- connectToNode n1 (_address . _network $ n2)
---   c2 <- connectToNode n2 (_address . _network $ n1)
---   return ((n1, c1), (n2, c2))
 
 setupNetwork :: IO ()
 setupNetwork = undefined

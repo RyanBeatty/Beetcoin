@@ -15,8 +15,9 @@ import Data.Serialize (encode, decode)
 startNode1 :: IO ()
 startNode1 = do
   network <- createNetwork "localhost" "3939"
-  let peer_address = mkNodeAddress "localhost" "4000"
-  let network_action = (runRWST . _unNode) (forever $ connectToNode peer_address) NodeConfig NodeState
+  let my_address     = mkNodeAddress "localhost" "3939" 
+  let peer_address   = mkNodeAddress "localhost" "4000"
+  let network_action = (runRWST . _unNode) (forever $ sendLetter (mkLetter my_address peer_address Message)) NodeConfig NodeState
   runNodeNetwork network_action network mkNetworkState
   return ()
 
@@ -28,8 +29,11 @@ startNode2 = do
   runNodeNetwork network_action network mkNetworkState
   return ()
 
-connectToNode :: MonadIO m => NodeAddress -> Node (NodeNetwork m) ()
-connectToNode address = lift $ sendData address (pure . encode $ Letter address (mkNodeAddress "localhost" "3939") Message)
+mkLetter :: NodeAddress -> NodeAddress -> Message -> Letter
+mkLetter sender receiver msg = Letter sender receiver msg
+
+sendLetter :: MonadIO m => Letter -> Node (NodeNetwork m) ()
+sendLetter letter = lift $ sendData (_receiver letter) (pure . encode $ letter)
 
 receiveFromNode :: MonadIO m => Node (NodeNetwork m) ()
 receiveFromNode = do
