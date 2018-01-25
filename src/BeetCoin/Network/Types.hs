@@ -12,7 +12,7 @@ module BeetCoin.Network.Types
   , Node (..)
   ) where
 
-import Control.Monad.RWS (RWST (..), MonadReader)
+import Control.Monad.RWS (RWST (..), MonadReader, MonadWriter)
 import Control.Monad.State (MonadState, StateT (..))
 import Control.Monad.Trans (MonadTrans, MonadIO)
 import qualified Data.ByteString as BS (ByteString)
@@ -75,8 +75,10 @@ data NodeConfig = NodeConfig
 data NodeState = NodeState
   deriving (Show)
 
-newtype Node m a = Node { _unNode :: RWST NodeConfig () NodeState m a }
-  deriving (Functor, Applicative, Monad, MonadTrans)
+newtype Node m a = Node { _unNode :: RWST NodeConfig [Letter] NodeState m a }
+  deriving ( Functor, Applicative, Monad, MonadReader NodeConfig
+           , MonadState NodeState, MonadWriter [Letter], MonadTrans
+           )
 
 instance Serialize Message
 instance Serialize Letter

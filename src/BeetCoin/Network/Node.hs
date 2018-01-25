@@ -8,9 +8,10 @@ import BeetCoin.Network.Types
 import BeetCoin.Network.Utils (mkNodeAddress)
 
 import Control.Monad (forever)
-import Control.Monad.RWS (runRWST)
+import Control.Monad.RWS (runRWST, tell, listen)
 import Control.Monad.Trans (MonadIO, liftIO, lift)
 import Data.Serialize (encode, decode)
+import Data.Traversable (traverse)
 
 startNode1 :: IO ()
 startNode1 = do
@@ -29,7 +30,7 @@ startNode2 = do
   runNodeNetwork network_action network mkNetworkState
   return ()
 
-runNode :: MonadIO m => Node (NodeNetwork m) a -> NodeConfig -> NodeState -> NodeNetwork m (a, NodeState, ())
+runNode :: MonadIO m => Node (NodeNetwork m) a -> NodeConfig -> NodeState -> NodeNetwork m (a, NodeState, [Letter])
 runNode = runRWST . _unNode 
 
 mkLetter :: NodeAddress -> NodeAddress -> Message -> Letter
@@ -45,3 +46,13 @@ receiveFromNode = do
 
 receiveLetters :: MonadIO m => Node (NodeNetwork m) [Letter]
 receiveLetters = lift $ receiveData
+
+startEventLoop :: MonadIO m => Node (NodeNetwork m) ()
+startEventLoop = do
+  actions         <- waitForLetters handler
+  (_, letters_to_send) <- listen actions
+  traverse (sendLetter) letters_to_send
+  startEventLoop
+
+handler = undefined
+waitForLetters = undefined
