@@ -7,7 +7,10 @@ import BeetCoin.Network.Utils
 import Control.Concurrent (threadDelay)
 import Control.Monad (forever)
 import Control.Distributed.Process
-import Control.Distributed.Process.Node
+  ( ProcessId (..), Process (..), NodeId (..), send, register, say
+  , getSelfPid, receiveWait, nsendRemote, match
+  )
+import Control.Distributed.Process.Node (LocalNode, newLocalNode, initRemoteTable, runProcess)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
 replyBack :: (ProcessId, String) -> Process ()
@@ -19,10 +22,14 @@ logMessage msg = say $ "handling " ++ msg
 mkNodeId :: String -> String -> NodeId
 mkNodeId host port = NodeId . _unNodeAddress $ mkNodeAddress host port
 
+createNode :: String -> String -> IO (LocalNode)
+createNode host port = do
+  Right transport <- createTransport host port defaultTCPParameters
+  newLocalNode transport initRemoteTable >>= return
+
 
 process1 = do
-  Right t <- createTransport "127.0.0.1" "3939" defaultTCPParameters
-  node    <- newLocalNode t initRemoteTable
+  node <- createNode "127.0.0.1" "3939"
   runProcess node $ do
     say "process1 running!"
     pid <- getSelfPid
@@ -31,8 +38,7 @@ process1 = do
     nsendRemote (mkNodeId "127.0.0.1" "4000") "process2" "hello, world"
 
 process2 = do
-  Right t <- createTransport "127.0.0.1" "4000" defaultTCPParameters
-  node    <- newLocalNode t initRemoteTable
+  node <- createNode "127.0.0.1" "4000"
   runProcess node $ do
     say "process1 running!"
     pid <- getSelfPid
