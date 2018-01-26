@@ -1,8 +1,7 @@
 module BeetCoin.Network.Process where
 
-import BeetCoin.Network.Types
-import BeetCoin.Network.Network
-import BeetCoin.Network.Utils
+import BeetCoin.Network.Types (ServerAction (..))
+import BeetCoin.Network.Utils (mkNodeId)
 
 import Control.Concurrent (threadDelay)
 import Control.Monad (forever)
@@ -13,14 +12,13 @@ import Control.Distributed.Process
 import Control.Distributed.Process.Node (LocalNode, newLocalNode, initRemoteTable, runProcess)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
+type ServerProcess a = ServerAction Process a
+
 replyBack :: (ProcessId, String) -> Process ()
 replyBack (sender, msg) = send sender msg
 
 logMessage :: String -> Process ()
 logMessage msg = say $ "handling " ++ msg
-
-mkNodeId :: String -> String -> NodeId
-mkNodeId host port = NodeId . _unNodeAddress $ mkNodeAddress host port
 
 createNode :: String -> String -> IO (LocalNode)
 createNode host port = do
