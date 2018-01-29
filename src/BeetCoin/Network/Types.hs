@@ -54,7 +54,7 @@ data BcNetworkAddress = BcNetworkAddress
 
 data Message =
     HelloMessage  
-  | PeerMessage
+  | PeerMessage { _peers :: [BcNetworkAddress] }
   deriving (Show, Generic)
 
 data Letter = Letter
@@ -105,7 +105,7 @@ newtype Node m a = Node { _unNode :: RWST NodeConfig [Letter] NodeState m a }
            )
 
 data ProcessConfig = ProcessConfig { _selfAddress :: BcNetworkAddress }
-data ProcessState = ProcessState { _peers :: [BcNetworkAddress] }
+data ProcessState = ProcessState { _myPeers :: [BcNetworkAddress] }
 
 newtype BeetCoinProcess m a = BeetCoinProcess { _unBeetCoinProcess :: RWST ProcessConfig [Letter] ProcessState m a }
   deriving ( Functor, Applicative, Monad, MonadReader ProcessConfig, MonadWriter [Letter]

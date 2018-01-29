@@ -13,7 +13,7 @@ import Control.Distributed.Process
   )
 import Control.Distributed.Process.Node (LocalNode, newLocalNode, initRemoteTable, runProcess)
 import Control.Monad (forever)
-import Control.Monad.RWS (listen, asks, runRWST)
+import Control.Monad.RWS (listen, asks, gets, runRWST)
 import Control.Monad.Trans (MonadIO, lift, liftIO)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
@@ -33,21 +33,30 @@ bcProcess1 = do
   let peer_address = mkBcNetworkAddress "127.0.0.1" "4000" "beetcoin-process-4000"
   sendLetter peer_address HelloMessage
   lift $ say "sent hello"
+  action <- lift $ receiveWait [match (letterHandler)]
+  action
 
 bcProcess2 :: BeetCoinProcess Process ()
 bcProcess2 = do
-  lift $ receiveWait [match (letterHandler)]
+  action <- lift $ receiveWait [match (letterHandler)]
+  action
 
 
-letterHandler :: Letter -> Process ()
+letterHandler :: Letter -> Process (BeetCoinProcess Process ())
 letterHandler letter =
   case _msg letter of
-    HelloMessage -> say "got hello"
+    HelloMessage      -> return $ handleHelloMessage (_sender letter)
+    PeerMessage peers -> return $ handlePeerMessage (_sender letter) peers 
 
--- handleHelloMessage :: BcNetworkAddress -> BeetCoinProcess Process ()
--- handleHelloMessage peer_address = do
---   peers <- asks _peers
---   sendLetter peer_address (PeerMessage peers)
+handleHelloMessage :: BcNetworkAddress -> BeetCoinProcess Process ()
+handleHelloMessage peer_address = do
+  peers <- gets _myPeers
+  lift $ say "got hello\n"
+  sendLetter peer_address (PeerMessage peers)
+
+handlePeerMessage :: BcNetworkAddress -> [BcNetworkAddress] -> BeetCoinProcess Process ()
+handlePeerMessage sender_address peers = do
+  lift . say  $ "got peers: " ++ (show peers)
 
 
 sendLetter :: BcNetworkAddress -> Message -> BeetCoinProcess Process ()
