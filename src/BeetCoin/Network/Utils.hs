@@ -1,16 +1,13 @@
-module BeetCoin.Network.Utils (mkNodeAddress, mkBcNodeId, mkBcNetworkAddress) where
+module BeetCoin.Network.Utils (mkBcNodeId, mkBcNetworkAddress) where
 
 import BeetCoin.Network.Types 
-  ( NodeAddress (..), BcNodeId (..), Host, Port, BcProcessName
+  ( BcNodeId (..), Host, Port, BcProcessName
   , BcNetworkAddress (..)
   )
 
 import Control.Distributed.Process (NodeId (..))
 import qualified Data.ByteString.Char8 as BS8 (pack)
 import Network.Transport (EndPointAddress (..))
-
-mkNodeAddress :: String -> String -> NodeAddress
-mkNodeAddress host port = NodeAddress . EndPointAddress . BS8.pack $ host ++ ":" ++ port ++ ":" ++ "0"
 
 mkBcNodeId :: Host -> Port -> BcNodeId
 mkBcNodeId host port =
