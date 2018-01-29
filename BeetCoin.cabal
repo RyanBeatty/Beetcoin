@@ -50,7 +50,6 @@ library
       BeetCoin.Core.Transaction
       BeetCoin.Core.Types
       BeetCoin.Core.Utils
-      BeetCoin.Network.Node
       BeetCoin.Network.Process
       BeetCoin.Network.Types
       BeetCoin.Network.Utils

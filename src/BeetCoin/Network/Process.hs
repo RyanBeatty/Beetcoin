@@ -2,7 +2,7 @@ module BeetCoin.Network.Process where
 
 import BeetCoin.Network.Types
   ( BeetCoinProcess (..), BcNetworkAddress (..), Message (..), Letter (..)
-  , ProcessConfig (..), ProcessState (..), BcNodeId (..)
+  , ProcessConfig (..), ProcessState (..), BcNodeId (..), PeerSet (..)
   )
 import BeetCoin.Network.Utils (mkBcNetworkAddress)
 
@@ -15,10 +15,11 @@ import Control.Distributed.Process.Node (LocalNode, newLocalNode, initRemoteTabl
 import Control.Monad (forever)
 import Control.Monad.RWS (listen, asks, gets, runRWST)
 import Control.Monad.Trans (MonadIO, lift, liftIO)
+import qualified Data.Set as S (empty)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
 newProcessState :: ProcessState
-newProcessState = ProcessState mempty
+newProcessState = ProcessState (PeerSet S.empty)
 
 logMessage :: String -> Process ()
 logMessage msg = say $ "handling " ++ msg
@@ -54,7 +55,7 @@ handleHelloMessage peer_address = do
   lift $ say "got hello\n"
   sendLetter peer_address (PeerMessage peers)
 
-handlePeerMessage :: BcNetworkAddress -> [BcNetworkAddress] -> BeetCoinProcess Process ()
+handlePeerMessage :: BcNetworkAddress -> PeerSet -> BeetCoinProcess Process ()
 handlePeerMessage sender_address peers = do
   lift . say  $ "got peers: " ++ (show peers)
 

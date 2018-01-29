@@ -5,6 +5,7 @@ module BeetCoin.Network.Types
   , Port (..)
   , BcProcessName (..)
   , BcNetworkAddress (..)
+  , PeerSet (..)
   , Message (..)
   , Letter (..)
   , ProcessConfig (..)
@@ -20,6 +21,7 @@ import qualified Data.ByteString as BS (ByteString)
 import qualified Data.Map.Strict as HM (Map (..))
 import Data.Binary (Binary)
 import Data.Serialize (Serialize (..), put, get)
+import qualified Data.Set as S (Set)
 import GHC.Generics (Generic)
 import Network.Transport
   ( Transport (..), EndPoint (..), Reliability (..), Connection (..), EndPointAddress (..)
@@ -39,9 +41,12 @@ data BcNetworkAddress = BcNetworkAddress
     , _pName  :: BcProcessName
     } deriving (Show, Generic)
 
+newtype PeerSet = PeerSet { _unPeerSet :: S.Set BcNetworkAddress }
+  deriving (Show, Generic)
+
 data Message =
     HelloMessage  
-  | PeerMessage { _peers :: [BcNetworkAddress] }
+  | PeerMessage { _peers :: PeerSet }
   deriving (Show, Generic)
 
 data Letter = Letter
@@ -51,7 +56,7 @@ data Letter = Letter
   } deriving (Show, Generic)
 
 data ProcessConfig = ProcessConfig { _selfAddress :: BcNetworkAddress }
-data ProcessState = ProcessState { _myPeers :: [BcNetworkAddress] }
+data ProcessState = ProcessState { _myPeers :: PeerSet }
 
 newtype BeetCoinProcess m a = BeetCoinProcess { _unBeetCoinProcess :: RWST ProcessConfig [Letter] ProcessState m a }
   deriving ( Functor, Applicative, Monad, MonadReader ProcessConfig, MonadWriter [Letter]
@@ -60,6 +65,6 @@ newtype BeetCoinProcess m a = BeetCoinProcess { _unBeetCoinProcess :: RWST Proce
 
 instance Binary BcNodeId
 instance Binary BcNetworkAddress
-
+instance Binary PeerSet
 instance Binary Message
 instance Binary Letter
