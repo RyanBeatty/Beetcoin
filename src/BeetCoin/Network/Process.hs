@@ -17,6 +17,9 @@ import Control.Monad.RWS (listen, asks, runRWST)
 import Control.Monad.Trans (MonadIO, lift, liftIO)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
+newProcessState :: ProcessState
+newProcessState = ProcessState mempty
+
 logMessage :: String -> Process ()
 logMessage msg = say $ "handling " ++ msg
 
@@ -41,6 +44,11 @@ letterHandler letter =
   case _msg letter of
     HelloMessage -> say "got hello"
 
+-- handleHelloMessage :: BcNetworkAddress -> BeetCoinProcess Process ()
+-- handleHelloMessage peer_address = do
+--   peers <- asks _peers
+--   sendLetter peer_address (PeerMessage peers)
+
 
 sendLetter :: BcNetworkAddress -> Message -> BeetCoinProcess Process ()
 sendLetter peer_address msg = do
@@ -56,7 +64,7 @@ process1 = do
     pid <- getSelfPid
     register "beetcoin-process-3939" pid
     say "beetcoin-process-3939 spawned!"
-    runRWST (_unBeetCoinProcess bcProcess1) (ProcessConfig (mkBcNetworkAddress "127.0.0.1" "3939" "beetcoin-process-3939")) ProcessState
+    runRWST (_unBeetCoinProcess bcProcess1) (ProcessConfig (mkBcNetworkAddress "127.0.0.1" "3939" "beetcoin-process-3939")) newProcessState
     return ()
 
 process2 = do
@@ -65,5 +73,5 @@ process2 = do
     pid <- getSelfPid
     register "beetcoin-process-4000" pid
     say "beetcoin-process-4000 spawned!"
-    runRWST (_unBeetCoinProcess bcProcess2) (ProcessConfig (mkBcNetworkAddress "127.0.0.1" "4000" "beetcoin-process-4000")) ProcessState
+    runRWST (_unBeetCoinProcess bcProcess2) (ProcessConfig (mkBcNetworkAddress "127.0.0.1" "4000" "beetcoin-process-4000")) newProcessState
     return ()
