@@ -2,6 +2,7 @@
 module BeetCoin.Network.Types
   ( SendError (..)
   , NodeAddress (..)
+  , BeetCoinAddress (..)
   , Message (..)
   , Letter (..)
   , Network (..)
@@ -10,9 +11,10 @@ module BeetCoin.Network.Types
   , NodeConfig (..)
   , NodeState (..)
   , Node (..)
-  , ServerAction (..)
+  , BeetCoinProcess (..)
   ) where
 
+import Control.Distributed.Process (NodeId (..))
 import Control.Monad.RWS (RWST (..), MonadReader, MonadWriter)
 import Control.Monad.State (MonadState, StateT (..))
 import Control.Monad.Trans (MonadTrans, MonadIO)
@@ -31,7 +33,10 @@ import Network.Transport
 newtype NodeAddress = NodeAddress { _unNodeAddress :: EndPointAddress }
   deriving (Show, Ord, Eq)
 
-data Message = Message
+newtype BeetCoinAddress = BeetCoinAddress { _unBeetCoinAddress :: NodeId }
+  deriving (Show)
+
+data Message = Message  
   deriving (Show, Generic)
 
 data Letter = Letter
@@ -81,10 +86,10 @@ newtype Node m a = Node { _unNode :: RWST NodeConfig [Letter] NodeState m a }
            , MonadState NodeState, MonadWriter [Letter], MonadTrans
            )
 
-data ServerConfig = ServerConfig
+data ServerConfig = ServerConfig { _selfAddress :: BeetCoinAddress }
 data ServerState = ServerState
 
-newtype ServerAction m a = ServerAction { _unServerAction :: RWST ServerConfig [Letter] ServerState m a }
+newtype BeetCoinProcess m a = BeetCoinProcess { _unBeetCoinProcess :: RWST ServerConfig [Letter] ServerState m a }
   deriving ( Functor, Applicative, Monad, MonadReader ServerConfig, MonadWriter [Letter]
            , MonadState ServerState, MonadTrans
            )
