@@ -16,6 +16,7 @@ module BeetCoin.Network.Types
   , NodeState (..)
   , Node (..)
   , ProcessConfig (..)
+  , ProcessState (..)
   , BeetCoinProcess (..)
   ) where
 
@@ -51,7 +52,7 @@ data BcNetworkAddress = BcNetworkAddress
     , _pName  :: BcProcessName
     } deriving (Show, Generic)
 
-data Message = Message  
+data Message = HelloMessage  
   deriving (Show, Generic)
 
 data Letter = Letter
@@ -102,11 +103,11 @@ newtype Node m a = Node { _unNode :: RWST NodeConfig [Letter] NodeState m a }
            )
 
 data ProcessConfig = ProcessConfig { _selfAddress :: BcNetworkAddress }
-data ServerState = ServerState
+data ProcessState = ProcessState
 
-newtype BeetCoinProcess m a = BeetCoinProcess { _unBeetCoinProcess :: RWST ProcessConfig [Letter] ServerState m a }
+newtype BeetCoinProcess m a = BeetCoinProcess { _unBeetCoinProcess :: RWST ProcessConfig [Letter] ProcessState m a }
   deriving ( Functor, Applicative, Monad, MonadReader ProcessConfig, MonadWriter [Letter]
-           , MonadState ServerState, MonadTrans
+           , MonadState ProcessState, MonadTrans
            )
 
 instance Binary BcNodeId
