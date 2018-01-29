@@ -4,12 +4,14 @@ import BeetCoin.Network.Types (ServerAction (..))
 import BeetCoin.Network.Utils (mkNodeId)
 
 import Control.Concurrent (threadDelay)
-import Control.Monad (forever)
 import Control.Distributed.Process
   ( ProcessId (..), Process (..), NodeId (..), send, register, say
   , getSelfPid, receiveWait, nsendRemote, match
   )
 import Control.Distributed.Process.Node (LocalNode, newLocalNode, initRemoteTable, runProcess)
+import Control.Monad (forever)
+import Control.Monad.RWS (listen)
+import Control.Monad.Trans (lift)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
 type ServerProcess a = ServerAction Process a

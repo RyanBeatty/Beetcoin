@@ -84,8 +84,8 @@ newtype Node m a = Node { _unNode :: RWST NodeConfig [Letter] NodeState m a }
 data ServerConfig = ServerConfig
 data ServerState = ServerState
 
-newtype ServerAction m a = ServerAction { _unServerAction :: RWST ServerConfig () ServerState m a }
-  deriving ( Functor, Applicative, Monad, MonadReader ServerConfig
+newtype ServerAction m a = ServerAction { _unServerAction :: RWST ServerConfig [Letter] ServerState m a }
+  deriving ( Functor, Applicative, Monad, MonadReader ServerConfig, MonadWriter [Letter]
            , MonadState ServerState, MonadTrans
            )
 
