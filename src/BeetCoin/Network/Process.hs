@@ -1,7 +1,10 @@
 module BeetCoin.Network.Process where
 
-import BeetCoin.Network.Types (BeetCoinProcess (..))
-import BeetCoin.Network.Utils (mkBeetCoinAddress)
+import BeetCoin.Network.Types
+  ( BeetCoinProcess (..), BcNetworkAddress (..), Message (..), Letter (..)
+  , ProcessConfig (..)
+  )
+import BeetCoin.Network.Utils (mkBcNetworkAddress)
 
 import Control.Concurrent (threadDelay)
 import Control.Distributed.Process
@@ -10,8 +13,8 @@ import Control.Distributed.Process
   )
 import Control.Distributed.Process.Node (LocalNode, newLocalNode, initRemoteTable, runProcess)
 import Control.Monad (forever)
-import Control.Monad.RWS (listen)
-import Control.Monad.Trans (lift)
+import Control.Monad.RWS (listen, asks)
+import Control.Monad.Trans (MonadIO, lift, liftIO)
 import Network.Transport.TCP (createTransport, defaultTCPParameters)
 
 logMessage :: String -> Process ()
@@ -27,9 +30,9 @@ createNode host port = do
 --   sendLetter peer_address HelloMessage
 
 
--- sendLetter :: MonadIO m => NodeId -> Message -> BeetCoinNode m ()
+-- sendLetter :: MonadIO m => BeetCoinAddress -> Message -> BeetCoinProcess m ()
 -- sendLetter peer_address msg = do
---   self_address <- ask (_selfAddress)
+--   self_address <- asks (_selfAddress)
 --   liftIO $ nsendRemote peer_address (Letter self_address peer_address msg)
 
 
