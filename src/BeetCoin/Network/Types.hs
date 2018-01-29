@@ -25,6 +25,7 @@ import Control.Monad.State (MonadState, StateT (..))
 import Control.Monad.Trans (MonadTrans, MonadIO)
 import qualified Data.ByteString as BS (ByteString)
 import qualified Data.Map.Strict as HM (Map (..))
+import Data.Binary (Binary)
 import Data.Serialize (Serialize (..), put, get)
 import GHC.Generics (Generic)
 import Network.Transport
@@ -39,7 +40,7 @@ newtype NodeAddress = NodeAddress { _unNodeAddress :: EndPointAddress }
   deriving (Show, Ord, Eq)
 
 newtype BcNodeId = BcNodeId { _unBcNodeId :: NodeId }
-  deriving (Show)
+  deriving (Show, Generic)
 
 type Host          = String
 type Port          = String
@@ -48,14 +49,14 @@ type BcProcessName = String
 data BcNetworkAddress = BcNetworkAddress
     { _nodeId :: BcNodeId
     , _pName  :: BcProcessName
-    } deriving (Show)
+    } deriving (Show, Generic)
 
 data Message = Message  
   deriving (Show, Generic)
 
 data Letter = Letter
-  { _sender   :: NodeAddress
-  , _receiver :: NodeAddress
+  { _sender   :: BcNetworkAddress
+  , _receiver :: BcNetworkAddress
   , _msg      :: Message
   } deriving (Show, Generic)
 
@@ -108,8 +109,11 @@ newtype BeetCoinProcess m a = BeetCoinProcess { _unBeetCoinProcess :: RWST Proce
            , MonadState ServerState, MonadTrans
            )
 
-instance Serialize Message
-instance Serialize Letter
+instance Binary BcNodeId
+instance Binary BcNetworkAddress
+
+instance Binary Message
+instance Binary Letter
 
 instance Serialize NodeAddress where
   put (NodeAddress address) = put . endPointAddressToByteString $ address

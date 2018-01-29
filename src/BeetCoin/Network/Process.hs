@@ -2,7 +2,7 @@ module BeetCoin.Network.Process where
 
 import BeetCoin.Network.Types
   ( BeetCoinProcess (..), BcNetworkAddress (..), Message (..), Letter (..)
-  , ProcessConfig (..)
+  , ProcessConfig (..), BcNodeId (..)
   )
 import BeetCoin.Network.Utils (mkBcNetworkAddress)
 
@@ -30,10 +30,10 @@ createNode host port = do
 --   sendLetter peer_address HelloMessage
 
 
--- sendLetter :: MonadIO m => BeetCoinAddress -> Message -> BeetCoinProcess m ()
--- sendLetter peer_address msg = do
---   self_address <- asks (_selfAddress)
---   liftIO $ nsendRemote peer_address (Letter self_address peer_address msg)
+sendLetter :: BcNetworkAddress -> Message -> BeetCoinProcess Process ()
+sendLetter peer_address msg = do
+  self_address <- asks (_selfAddress)
+  lift $ nsendRemote (_unBcNodeId . _nodeId $ peer_address) (_pName peer_address) (Letter self_address peer_address msg)
 
 
 -- process1 = do

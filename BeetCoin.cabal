@@ -30,6 +30,7 @@ library
   build-depends:
       base >= 4.7 && < 5
     , base58-bytestring
+    , binary
     , bytestring
     , bytestring-conversion
     , cereal
@@ -64,6 +65,7 @@ executable BeetCoin-exe
   build-depends:
       base >= 4.7 && < 5
     , base58-bytestring
+    , binary
     , bytestring
     , bytestring-conversion
     , cereal
@@ -89,6 +91,7 @@ test-suite BeetCoin-test
   build-depends:
       base >= 4.7 && < 5
     , base58-bytestring
+    , binary
     , bytestring
     , bytestring-conversion
     , cereal
